@@ -38,7 +38,7 @@ RenderSettings:
   m_ReflectionIntensity: 1
   m_CustomReflection: {fileID: 0}
   m_Sun: {fileID: 0}
-  m_IndirectSpecularColor: {r: 2160.5244, g: 2264.5703, b: 3287.5898, a: 1}
+  m_IndirectSpecularColor: {r: 2160.043, g: 2263.8164, b: 3286.5586, a: 1}
   m_UseRadianceAmbientProbe: 0
 --- !u!157 &3
 LightmapSettings:
@@ -479,7 +479,7 @@ WheelCollider:
   m_Center: {x: 0, y: 0, z: 0}
   m_Radius: 0.62
   m_SuspensionSpring:
-    spring: 35000
+    spring: 34000
     damper: 4500
     targetPosition: 0.5
   m_SuspensionDistance: 0.3
@@ -541,7 +541,7 @@ WheelCollider:
   m_Center: {x: 0, y: 0, z: 0}
   m_Radius: 0.62
   m_SuspensionSpring:
-    spring: 35000
+    spring: 34000
     damper: 4500
     targetPosition: 0.5
   m_SuspensionDistance: 0.3
@@ -784,7 +784,7 @@ WheelCollider:
   m_Center: {x: 0, y: 0, z: 0}
   m_Radius: 0.62
   m_SuspensionSpring:
-    spring: 35000
+    spring: 39200
     damper: 4500
     targetPosition: 0.5
   m_SuspensionDistance: 0.3
@@ -1709,7 +1709,7 @@ WheelCollider:
   m_Center: {x: 0, y: 0, z: 0}
   m_Radius: 0.62
   m_SuspensionSpring:
-    spring: 35000
+    spring: 39200
     damper: 4500
     targetPosition: 0.5
   m_SuspensionDistance: 0.3
@@ -1794,17 +1794,17 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   axleInfos:
+  - leftWheel: {fileID: 679209813}
+    rightWheel: {fileID: 2057412814}
+    leftWheelMeshGameObject: {fileID: 887632885}
+    rightWheelMeshGameObject: {fileID: 1959023971}
+    motor: 1
+    steering: 1
   - leftWheel: {fileID: 256054878}
     rightWheel: {fileID: 427815702}
     leftWheelMeshGameObject: {fileID: 1592327178}
     rightWheelMeshGameObject: {fileID: 1952885978}
     motor: 1
     steering: 0
-  - leftWheel: {fileID: 679209813}
-    rightWheel: {fileID: 2057412814}
-    leftWheelMeshGameObject: {fileID: 887632885}
-    rightWheelMeshGameObject: {fileID: 1959023971}
-    motor: 0
-    steering: 1
-  maxMotorTorque: 1000
+  maxMotorTorque: 750
   maxSteeringAngle: 30
