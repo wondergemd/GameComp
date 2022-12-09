@@ -15,11 +15,33 @@ public class AxleInfo
     public bool steering;
 }
 
-public class PlayerCarController : MonoBehaviour
+public class Vehicle : MonoBehaviour
 {
     public List<AxleInfo> axleInfos;
     public float maxMotorTorque;
+    public float maxBrakeTorque;
     public float maxSteeringAngle;
+
+    private float _throttle;
+    public float Throttle
+    {
+        get { return _throttle; }
+        set { _throttle = Mathf.Clamp01(value); }
+    }
+
+    private float _brake;
+    public float Brake
+    {
+        get { return _brake; }
+        set { _brake = Mathf.Clamp01(value); }
+    }
+
+    private float _steering;
+    public float Steering
+    {
+        get { return _steering; }
+        set { _steering = Mathf.Clamp(value, -1.0f, 1.0f); }
+    }
 
     // finds the corresponding visual wheel
     // correctly applies the transform
@@ -33,25 +55,33 @@ public class PlayerCarController : MonoBehaviour
 
         visualWheel.transform.position = position;
         visualWheel.transform.rotation = rotation;
-    }
+    } 
 
     public void FixedUpdate()
     {
-        float motor = maxMotorTorque * Input.GetAxis("Vertical");
-        float steering = maxSteeringAngle * Input.GetAxis("Horizontal");
+        // Calculate motor and braking torque and steering angle based on user inputs
+        float motorTorque = maxMotorTorque * Throttle;
+        float brakeTorque = maxBrakeTorque * Brake;
+        float steeringAngle = maxSteeringAngle * Steering;
 
+        // Set torques and steering angles to wheel collider objects
         foreach (AxleInfo axleInfo in axleInfos)
         {
             if (axleInfo.steering)
             {
-                axleInfo.leftWheel.steerAngle = steering;
-                axleInfo.rightWheel.steerAngle = steering;
+                axleInfo.leftWheel.steerAngle = steeringAngle;
+                axleInfo.rightWheel.steerAngle = steeringAngle;
             }
             if (axleInfo.motor)
             {
-                axleInfo.leftWheel.motorTorque = motor;
-                axleInfo.rightWheel.motorTorque = motor;
+                axleInfo.leftWheel.motorTorque = motorTorque;
+                axleInfo.rightWheel.motorTorque = motorTorque;
             }
+
+            axleInfo.leftWheel.brakeTorque = brakeTorque;
+            axleInfo.rightWheel.brakeTorque = brakeTorque;
+
+            // Pivot steered wheels visually
             ApplyLocalPositionToVisuals(axleInfo.leftWheel, axleInfo.leftWheelMeshGameObject);
             ApplyLocalPositionToVisuals(axleInfo.rightWheel, axleInfo.rightWheelMeshGameObject);
         }
