@@ -43,6 +43,34 @@ public class Vehicle : MonoBehaviour
         set { _steering = Mathf.Clamp(value, -1.0f, 1.0f); }
     }
 
+    private Vector3 lastVelocity;
+    private Vector3 acceleration;
+
+    public Vector3 GetVelocity()
+    {
+        return GetComponent<Rigidbody>().velocity;
+    }
+
+    public float GetSpeed()
+    {
+        return GetVelocity().magnitude;
+    }
+
+    public Vector3 GetAccelerationVec()
+    {
+        return acceleration;
+    }
+
+    public float GetAcceleration()
+    {
+        return acceleration.magnitude;
+    }
+
+    public Quaternion GetRotation()
+    {
+        return GetComponent<Rigidbody>().rotation;
+    }
+
     // finds the corresponding visual wheel
     // correctly applies the transform
     public void ApplyLocalPositionToVisuals(WheelCollider collider, GameObject gameObject)
@@ -59,6 +87,11 @@ public class Vehicle : MonoBehaviour
 
     public void FixedUpdate()
     {
+        Vector3 currVelocity = GetVelocity();
+
+        acceleration = (currVelocity - lastVelocity) / Time.deltaTime;
+        lastVelocity = currVelocity;
+
         // Calculate motor and braking torque and steering angle based on user inputs
         float motorTorque = maxMotorTorque * Throttle;
         float brakeTorque = maxBrakeTorque * Brake;
