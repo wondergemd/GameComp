@@ -22,6 +22,8 @@ public class Vehicle : MonoBehaviour
     public float maxBrakeTorque;
     public float maxSteeringAngle;
 
+    private Rigidbody rb;
+
     private float _throttle;
     public float Throttle
     {
@@ -46,44 +48,10 @@ public class Vehicle : MonoBehaviour
     private Vector3 lastVelocity;
     private Vector3 acceleration;
 
-    public Vector3 GetVelocity()
+    public void Start()
     {
-        return GetComponent<Rigidbody>().velocity;
+        rb = GetComponent<Rigidbody>();
     }
-
-    public float GetSpeed()
-    {
-        return GetVelocity().magnitude;
-    }
-
-    public Vector3 GetAccelerationVec()
-    {
-        return acceleration;
-    }
-
-    public float GetAcceleration()
-    {
-        return acceleration.magnitude;
-    }
-
-    public Quaternion GetRotation()
-    {
-        return GetComponent<Rigidbody>().rotation;
-    }
-
-    // finds the corresponding visual wheel
-    // correctly applies the transform
-    public void ApplyLocalPositionToVisuals(WheelCollider collider, GameObject gameObject)
-    {
-        Transform visualWheel = gameObject.transform;
-
-        Vector3 position;
-        Quaternion rotation;
-        collider.GetWorldPose(out position, out rotation);
-
-        visualWheel.transform.position = position;
-        visualWheel.transform.rotation = rotation;
-    } 
 
     public void FixedUpdate()
     {
@@ -118,5 +86,49 @@ public class Vehicle : MonoBehaviour
             ApplyLocalPositionToVisuals(axleInfo.leftWheel, axleInfo.leftWheelMeshGameObject);
             ApplyLocalPositionToVisuals(axleInfo.rightWheel, axleInfo.rightWheelMeshGameObject);
         }
+    }
+
+    // finds the corresponding visual wheel
+    // correctly applies the transform
+    public void ApplyLocalPositionToVisuals(WheelCollider collider, GameObject gameObject)
+    {
+        Transform visualWheel = gameObject.transform;
+
+        Vector3 position;
+        Quaternion rotation;
+        collider.GetWorldPose(out position, out rotation);
+
+        visualWheel.transform.position = position;
+        visualWheel.transform.rotation = rotation;
+    }
+
+    public Vector3 GetPosition()
+    {
+        return rb.position;
+    }
+
+    public Vector3 GetVelocity()
+    {
+        return rb.velocity;
+    }
+
+    public float GetSpeed()
+    {
+        return GetVelocity().magnitude;
+    }
+
+    public Vector3 GetAccelerationVec()
+    {
+        return acceleration;
+    }
+
+    public float GetAcceleration()
+    {
+        return acceleration.magnitude;
+    }
+
+    public Quaternion GetRotation()
+    {
+        return rb.rotation;
     }
 }

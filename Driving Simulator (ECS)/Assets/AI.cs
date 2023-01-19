@@ -1,5 +1,3 @@
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.AI;
 
@@ -12,10 +10,10 @@ public class AI : MonoBehaviour
     public Transform target;
     private NavMeshPath path;
 
-    private float maxLateralAcc = 3f;
+    private float maxAcc = 3f; // m/s^2
 
     Vector3 vehPos = Vector3.zero;
-    float vehSpeed = 0f;
+    float vehSpeed = 0f; // m/s
 
     private int currentCorner = 1;
 
@@ -61,7 +59,7 @@ public class AI : MonoBehaviour
 
     void FixedUpdate()
     {
-        vehPos = vehicle.transform.position;
+        vehPos = vehicle.GetPosition();
         vehSpeed = vehicle.GetSpeed();
 
         Vector3 lastwpPos = path.corners[currentCorner - 1];
@@ -69,24 +67,40 @@ public class AI : MonoBehaviour
         Vector3 wpVec = wpPos - lastwpPos;
         Vector3 wpLeft = Vector3.Cross(wpVec, Vector3.up).normalized;
 
-        float vehXnormOnSeg = InverseLerp(vehPos, lastwpPos, wpPos);
+        float vehXnormOnSeg = MathLib.InverseLerp(vehPos, lastwpPos, wpPos);
 
         Vector3 targetPos = CalculateTarget(vehXnormOnSeg);
 
         Vector3 vehToTarget = targetPos - vehPos;
 
+        float lastTurnSpeed = 10f;
         float turnSpeed = 10f;
+
+        if (currentCorner - 2 >= 0)
+        {
+            Vector3 last2wpPos = path.corners[currentCorner - 2];
+            float radius = MathLib.GetRadius(last2wpPos, lastwpPos, wpPos);
+            lastTurnSpeed = Mathf.Sqrt(maxAcc * Mathf.Abs(radius));
+        }
 
         if (currentCorner + 1 < path.corners.Length)
         {
             Vector3 nextwpPos = path.corners[currentCorner + 1];
-            float curvature = GetCurvature(wpVec, nextwpPos - wpPos);
-            turnSpeed = Mathf.Sqrt(maxLateralAcc / curvature);
+            float radius = MathLib.GetRadius(lastwpPos, wpPos, nextwpPos);
+            turnSpeed = Mathf.Sqrt(maxAcc * Mathf.Abs(radius));
+            //Debug.Log(string.Format("radius: {0:0.00} m", radius));
+            Debug.DrawLine(nextwpPos, nextwpPos + Vector3.up, Color.green);
         }
 
-        Debug.Log("turnspeed: " + turnSpeed);
+        Debug.Log(string.Format("turnspeed: {0:0.00} m/s", turnSpeed));
 
-        float speedDiff = turnSpeed - vehSpeed;
+        //float acc = (turnSpeed * turnSpeed - vehSpeed * vehSpeed) / (2 * (vehPos - wpPos).magnitude);
+        float targetSpeed = Mathf.Lerp(lastTurnSpeed, turnSpeed, vehXnormOnSeg);
+
+        Debug.Log(string.Format("targetSpeed: {0:0.00} m/s", targetSpeed));
+        
+        float speedDiff = targetSpeed - vehSpeed;
+        //Debug.Log(string.Format("speedDiff: {0:0.00} m/s", speedDiff));
 
         float angleToTarget = Mathf.Asin(Vector3.Dot(vehicle.transform.right, vehToTarget.normalized));
 
@@ -99,54 +113,24 @@ public class AI : MonoBehaviour
             currentCorner = Mathf.Min(++currentCorner, path.corners.Length - 1);
         }
 
-        Debug.Log("currentCorner: " + currentCorner);
+        //Debug.Log("currentCorner: " + currentCorner);
 
         //Gizmos.DrawSphere(lastwpPos, 1.0f);
         //Gizmos.DrawSphere(wpPos, 1.0f);
         Debug.DrawLine(targetPos, targetPos + Vector3.up, Color.cyan);
         Debug.DrawLine(lastwpPos, lastwpPos + wpLeft);
 
-
+        /*
         for (int i = 0; i < path.corners.Length - 1; i++)
         {
             Debug.DrawLine(path.corners[i], path.corners[i + 1], Color.red);
             Debug.DrawLine(path.corners[i], path.corners[i] + Vector3.up, Color.red);
         }
+        */
+
+        Debug.DrawLine(lastwpPos, lastwpPos + Vector3.up, Color.green);
+        Debug.DrawLine(wpPos, wpPos + Vector3.up, Color.green);
     }
 
-    float InverseLerp(Vector3 pos, Vector3 a, Vector3 b)
-    {
-        float bax = b.x - a.x, bay = b.y - a.y, baz = b.z - a.z;
-        return (bax * (pos.x - a.x) + bay * (pos.y - a.y) + baz * (pos.z - a.z)) / (bax * bax + bay * bay + baz * baz + 1e-30f);
-    }
-
-    float GetCurvature(Vector3 vec1, Vector3 vec2)
-    {
-        float vec1Sqlen = vec1.sqrMagnitude, vec2Sqlen = vec2.sqrMagnitude;
-        float dot12 = Vector3.Dot(vec1, vec2);
-        float cos8sq = Mathf.Min(1, dot12 * dot12 / Mathf.Max(1e-30f, vec1Sqlen * vec2Sqlen));
-
-        if (dot12 < 0)
-        {
-            float minDsq = Mathf.Min(vec1Sqlen, vec2Sqlen);
-            float maxDsq = minDsq / Mathf.Max(1e-30f, cos8sq);
-            if (Mathf.Max(vec1Sqlen, vec2Sqlen) > (minDsq + maxDsq) * 0.5f)
-            {
-                if (vec1Sqlen > vec2Sqlen)
-                {
-                    Vector3 tempVec = vec1;
-                    vec1 = vec2;
-                    vec2 = tempVec;
-
-                    float tempLen = vec1Sqlen;
-                    vec1Sqlen = vec2Sqlen;
-                    vec2Sqlen = tempLen;
-                }
-                vec2 *= Mathf.Sqrt(0.5f * (minDsq + maxDsq) / Mathf.Max(1e-30f, vec2Sqlen));
-            }
-        }
-
-        vec2 *= -1f;
-        return 2 * Mathf.Sqrt((1 - cos8sq) / Mathf.Max(1e-30f, (vec1 - vec2).sqrMagnitude));
-    }
+    
 }
