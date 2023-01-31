@@ -11,9 +11,12 @@ public class AI : MonoBehaviour
         public Vector3 endPos;
         public Vector3 segmentVec;
         public float length;
-        public float radius;
-        public float maxSpeed; // max speed to negotiate segment
-        public float speed; // segment start speed
+        public float startRadius;
+        public float endRadius;
+        public float startMaxSpeed; // max speed to negotiate segment start
+        public float endMaxSpeed; // max speed to negotiate segment end
+        public float startSpeed; // segment start speed
+        public float endSpeed; // segment start speed
     }
 
     public DebugDrawer debugDrawer;
@@ -31,7 +34,7 @@ public class AI : MonoBehaviour
     Vector3 vehPos = Vector3.zero;
     float vehSpeed = 0f; // m/s
 
-    private int currSeg = 0;
+    private int currSegIdx = 0;
 
     void Start()
     {
@@ -54,8 +57,7 @@ public class AI : MonoBehaviour
             Vector3 wpVec = wpEndPos - wpStartPos;
             Vector3 wpLeft = Vector3.Cross(wpVec, Vector3.up).normalized;
 
-            float maxSpeed = 1f;
-            float radius = 1f;
+            float startMaxSpeed, startRadius;
 
             if (i > 0)
             {
@@ -64,28 +66,37 @@ public class AI : MonoBehaviour
                 //turnSpeed = Mathf.Sqrt(maxAcc / curvature);
                 //turnSpeed = turnSpeed * Mathf.Sin(Mathf.Min(Mathf.Asin(Mathf.Min(1, n2SpeedSq / turnSpeedSq)) + 2 * curvature * n1.length, pi * 0.5))
 
-                radius = MathLib.GetRadius(wpLastPos, wpStartPos, wpEndPos);
-                maxSpeed = Mathf.Sqrt(maxAcc * Mathf.Abs(radius));
+                startRadius = MathLib.GetRadius(wpLastPos, wpStartPos, wpEndPos);
+                startMaxSpeed = Mathf.Sqrt(maxAcc * Mathf.Abs(startRadius));
+
+                SegmentData prevSegment = plan[i - 1];
+                prevSegment.endRadius = startRadius;
+                prevSegment.endMaxSpeed = startMaxSpeed;
+                prevSegment.endSpeed = startMaxSpeed;
+
                 //Debug.Log(string.Format("radius: {0:0.00} m", radius));
                 //Debug.DrawLine(nextwpPos, nextwpPos + Vector3.up, Color.green);
             }
             else
             {
                 // first segment
-                radius = float.MaxValue;
-                maxSpeed = float.MaxValue;
+                startRadius = float.MaxValue;
+                startMaxSpeed = float.MaxValue;
             }
 
             segment.startPos = wpStartPos;
             segment.endPos = wpEndPos;
             segment.segmentVec = wpVec;
             segment.length = wpVec.magnitude;
-            segment.radius = radius;
-            segment.maxSpeed = maxSpeed;
-            segment.speed = maxSpeed; // will calculate new value later
+            segment.startRadius = startRadius;
+            segment.startMaxSpeed = startMaxSpeed;
+            segment.startSpeed = startMaxSpeed; // will calculate new value later
 
             plan.Add(segment);
         }
+        SegmentData lastSeg = plan[plan.Count - 1];
+        lastSeg.endRadius = float.MaxValue;
+        lastSeg.endMaxSpeed = 0f;
 
         int resets = 0;
 
@@ -96,15 +107,20 @@ public class AI : MonoBehaviour
             SegmentData nextSeg = plan[i + 1];
 
             // vf^2 = vi^2 + 2 * a * d
-            float nextSegSpeedSqrAfterSlowing = currSeg.speed * currSeg.speed + 2 * -maxAcc * currSeg.length;
+            float nextSegSpeedSqrAfterSlowing = currSeg.startSpeed * currSeg.startSpeed + 2 * -maxAcc * currSeg.length;
 
             //Debug.Log("i: " + i + ", " + currSeg.speed + ", " + Mathf.Sqrt(nextSegSpeedSqrAfterSlowing) + ", " + nextSeg.speed);
 
             // If we can't slow down before next segment speed, we must reduce our initial speed
             // and backtrace to make it so we can slow down
-            if (nextSegSpeedSqrAfterSlowing - 0.001f > nextSeg.speed * nextSeg.speed)
+            if (nextSegSpeedSqrAfterSlowing - 0.001f > nextSeg.startSpeed * nextSeg.startSpeed)
             {
-                currSeg.speed = Mathf.Sqrt(nextSeg.speed * nextSeg.speed + 2 * maxAcc * currSeg.length);
+                currSeg.startSpeed = Mathf.Sqrt(nextSeg.startSpeed * nextSeg.startSpeed + 2 * maxAcc * currSeg.length);
+                if (i > 0)
+                {
+                    plan[i - 1].endSpeed = currSeg.startSpeed;
+                }
+
                 //Debug.Log("new currsegSpeed: " + currSeg.speed);
                 if (i > 0)
                 {
@@ -122,23 +138,25 @@ public class AI : MonoBehaviour
         }
     }
 
-    Vector3 CalculateTarget(float vehXnormOnSeg)
+    Vector3 CalculateTarget(SegmentData currSeg, float vehXnormOnSeg)
     {
-        Vector3 wpPos0 = path.corners[currSeg];
-        Vector3 wpPos1 = path.corners[currSeg + 1];
-        
-        //Vector3 wp01Vec = wpPos1 - wpPos0;
-
         float targetLength = Mathf.Max(vehSpeed, 5f);
         float remainder = targetLength;
 
-        Vector3 targetPos = path.corners[path.corners.Length - 1];
-        Vector3 prevPos = Vector3.LerpUnclamped(wpPos0, wpPos1, vehXnormOnSeg);
+        Vector3 targetPos = plan[plan.Count - 1].endPos;
+        Vector3 prevPos = Vector3.LerpUnclamped(currSeg.startPos, currSeg.endPos, vehXnormOnSeg);
 
-        for (int i = currSeg + 1; i < path.corners.Length; i++)
+        for (int i = currSegIdx; i < plan.Count; i++)
         {
-            Vector3 pos = path.corners[i];
-            Vector3 segVec = pos - prevPos;
+            SegmentData seg = plan[i];
+
+            Vector3 pos = seg.endPos;
+            Vector3 segVec;
+            if (i == currSegIdx) 
+                segVec = pos - prevPos;
+            else 
+                segVec = seg.segmentVec;
+
             float segLen = segVec.magnitude;
 
             if (remainder <= segLen)
@@ -156,20 +174,20 @@ public class AI : MonoBehaviour
 
     void FixedUpdate()
     {
-        if (currSeg >= plan.Count - 1) return;
+        //Debug.Log("currSeg: " + currSegIdx + ", planCount: " + plan.Count);
+        if (currSegIdx >= plan.Count) return;
         
         vehPos = vehicle.GetPosition();
         vehSpeed = vehicle.GetSpeed();
 
         // Contains precalculated information
-        SegmentData segment = plan[currSeg];
-        SegmentData nextSegment = plan[currSeg + 1];
+        SegmentData segment = plan[currSegIdx];
 
         float vehXnormOnSeg = MathLib.InverseLerp(vehPos, segment.startPos, segment.endPos);
-        Vector3 targetPos = CalculateTarget(vehXnormOnSeg);
+        Vector3 targetPos = CalculateTarget(segment, vehXnormOnSeg);
         Vector3 vehToTarget = targetPos - vehPos;
        
-        float targetSpeed = Mathf.Lerp(segment.speed, nextSegment.speed, vehXnormOnSeg);
+        float targetSpeed = Mathf.Lerp(segment.startSpeed, segment.endSpeed, vehXnormOnSeg);
 
         float speedDiff = targetSpeed - vehSpeed;
         //Debug.Log(string.Format("speedDiff: {0:0.00} m/s", speedDiff));
@@ -182,7 +200,7 @@ public class AI : MonoBehaviour
 
         if (vehXnormOnSeg > 1.0f)
         {
-            currSeg = Mathf.Min(++currSeg, path.corners.Length - 1);
+            currSegIdx = Mathf.Min(++currSegIdx, plan.Count - 1);
         }
 
         //Debug.Log("currentCorner: " + currentCorner);
@@ -211,7 +229,7 @@ public class AI : MonoBehaviour
             SegmentData planData = plan[i];
 
             //debugDrawer.Draw3DText(planData.startPos, string.Format("{0:0.00}", planData.speed));
-            debugDrawer.Draw3DText(planData.startPos, string.Format("{0:0.00} km/h", planData.speed * 3.6f));
+            debugDrawer.Draw3DText(planData.startPos, string.Format("{0:0.00} km/h", planData.startSpeed * 3.6f));
         }
     }
 
