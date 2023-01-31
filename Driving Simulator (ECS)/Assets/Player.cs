@@ -8,14 +8,15 @@ public class Player : MonoBehaviour
     public Text DebugText;
 
     private float textUpdateTimer = 0f;
+    private MathLib.ExponentialSmoother accLongSmoother, accLatSmoother;
 
     // Start is called before the first frame update
     void Start()
     {
-        
+        accLongSmoother = new MathLib.ExponentialSmoother(30, 0.0f, Time.fixedDeltaTime);
+        accLatSmoother = new MathLib.ExponentialSmoother(30, 0.0f, Time.fixedDeltaTime);
     }
 
-    // Update is called once per frame
     public void FixedUpdate()
     {
         // Positive for accelerating and negative for braking
@@ -28,8 +29,8 @@ public class Player : MonoBehaviour
 
         Vector3 localAcc = Quaternion.Inverse(Vehicle.GetRotation()) * Vehicle.GetAccelerationVec();
 
-        float longAcc = localAcc.z;
-        float latAcc = localAcc.x;
+        float longAcc = accLongSmoother.Get(localAcc.z);
+        float latAcc = accLatSmoother.Get(localAcc.x);
 
         if (textUpdateTimer > 0.1f)
         {
@@ -44,6 +45,6 @@ public class Player : MonoBehaviour
             DebugText.text = debugStr;
         }
 
-        textUpdateTimer += Time.deltaTime;
+        textUpdateTimer += Time.fixedDeltaTime;
     }
 }

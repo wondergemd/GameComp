@@ -1,7 +1,33 @@
-﻿using UnityEngine;
+﻿using System;
+using UnityEngine;
 
+// Much of code comes from BeamNG.drive's lua/common/mathlib.lua
 public static class MathLib
 {
+    // From lua/common/filters.lua
+    public class ExponentialSmoother
+    {
+        float a;
+        float startingValue;
+        float st;
+
+        public ExponentialSmoother(int window, float? startingValue, float? fixedDt)
+        {
+            this.a = 2.0f / Mathf.Max(window, 2);
+            this.startingValue = startingValue ?? 0;
+            this.st = startingValue ?? 0;
+            float dt = fixedDt ?? 0.0005f;
+            float adt = this.a * dt;
+            this.a = ((1.0f / dt) + this.a) * adt / (1 + adt);
+        }
+
+        public float Get(float sample)
+        {
+            this.st += this.a * (sample - this.st);
+            return st;
+        }
+    }
+
     public static float InverseLerp(Vector3 pos, Vector3 a, Vector3 b)
     {
         float bax = b.x - a.x, bay = b.y - a.y, baz = b.z - a.z;

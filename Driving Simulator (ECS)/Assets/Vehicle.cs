@@ -56,8 +56,7 @@ public class Vehicle : MonoBehaviour
     public void FixedUpdate()
     {
         Vector3 currVelocity = GetVelocity();
-
-        acceleration = (currVelocity - lastVelocity) / Time.deltaTime;
+        acceleration = (currVelocity - lastVelocity) / Time.fixedDeltaTime;
         lastVelocity = currVelocity;
 
         // Calculate motor and braking torque and steering angle based on user inputs
