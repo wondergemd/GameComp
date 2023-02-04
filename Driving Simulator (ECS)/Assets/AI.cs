@@ -2,6 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.AI;
+using Utils;
 
 // Adapted from BeamNG.drive's lua/vehicle/ai.lua open source code and with permission
 public class AI : MonoBehaviour
@@ -11,6 +12,8 @@ public class AI : MonoBehaviour
         public Vector3 endPos;
         public Vector3 segmentVec;
         public float length;
+        public float startWidth;
+        public float endWidth;
         public float startRadius;
         public float endRadius;
         public float startMaxSpeed; // max speed to negotiate segment start
@@ -20,14 +23,13 @@ public class AI : MonoBehaviour
     }
 
     public DebugDrawer debugDrawer;
-
+    public PathFinder pathFinder;
     public Vehicle vehicle;
 
     public Transform origin;
     public Transform target;
-    private NavMeshPath path;
+    private List<Waypoint> path = new List<Waypoint>();
     private List<SegmentData> plan = new List<SegmentData>();
-    
 
     private float maxAcc = 3f; // m/s^2
 
@@ -38,22 +40,38 @@ public class AI : MonoBehaviour
 
     void Start()
     {
-        path = new NavMeshPath();
-        NavMesh.CalculatePath(origin.position, target.position, NavMesh.AllAreas, path);
-        GeneratePlan(path);
+        //path = new NavMeshPath();
+        //NavMesh.CalculatePath(origin.position, target.position, NavMesh.AllAreas, path);
+
+        path = pathFinder.CalculatePath(origin.position, target.position);
+
+        if (path != null)
+        {
+            if (!GeneratePlan(path))
+            {
+                Debug.LogError("Path unsuccessfully generated!!!");
+            }
+        }
+        
     }
 
     // Calculate route data ahead of time
-    void GeneratePlan(NavMeshPath path)
+    bool GeneratePlan(List<Waypoint> path)
     {
         plan.Clear();
 
-        for (int i = 0; i < path.corners.Length - 1; i++)
+        if (path.Count == 0)
+        {
+            Debug.LogError("Given NavMeshPath Length = 0!");
+            return false;
+        }
+
+        for (int i = 0; i < path.Count - 1; i++)
         {
             SegmentData segment = new SegmentData();
 
-            Vector3 wpStartPos = path.corners[i];
-            Vector3 wpEndPos = path.corners[i + 1];
+            Vector3 wpStartPos = path[i].GetPosition();
+            Vector3 wpEndPos = path[i + 1].GetPosition();
             Vector3 wpVec = wpEndPos - wpStartPos;
             Vector3 wpLeft = Vector3.Cross(wpVec, Vector3.up).normalized;
 
@@ -61,7 +79,7 @@ public class AI : MonoBehaviour
 
             if (i > 0)
             {
-                Vector3 wpLastPos = path.corners[i - 1];
+                Vector3 wpLastPos = path[i - 1].GetPosition(); ;
                 //float curvature = MathLib.GetCurvature(wpVec, nextwpPos - wpPos);
                 //turnSpeed = Mathf.Sqrt(maxAcc / curvature);
                 //turnSpeed = turnSpeed * Mathf.Sin(Mathf.Min(Mathf.Asin(Mathf.Min(1, n2SpeedSq / turnSpeedSq)) + 2 * curvature * n1.length, pi * 0.5))
@@ -129,13 +147,13 @@ public class AI : MonoBehaviour
                 }
             }
             
-
             if (resets > 100000)
             {
                 Debug.LogError("GeneratePlan forever loop condition halted");
-                break;
+                return false;
             }
         }
+        return true;
     }
 
     Vector3 CalculateTarget(SegmentData currSeg, float vehXnormOnSeg)
@@ -213,13 +231,14 @@ public class AI : MonoBehaviour
 
     void LateUpdate()
     {
-        /*
-        for (int i = 0; i < path.corners.Length - 1; i++)
+        if (path != null)
         {
-            Debug.DrawLine(path.corners[i], path.corners[i + 1], Color.red);
-            Debug.DrawLine(path.corners[i], path.corners[i] + Vector3.up, Color.red);
+            for (int i = 0; i < path.Count - 1; i++)
+            {
+                Debug.DrawLine(path[i].GetPosition(), path[i + 1].GetPosition(), Color.red);
+                Debug.DrawLine(path[i].GetPosition(), path[i].GetPosition() + Vector3.up, Color.red);
+            }
         }
-        */
 
         //Debug.DrawLine(lastwpPos, lastwpPos + Vector3.up, Color.green);
         //Debug.DrawLine(wpPos, wpPos + Vector3.up, Color.green);
@@ -228,8 +247,8 @@ public class AI : MonoBehaviour
         {
             SegmentData planData = plan[i];
 
-            //debugDrawer.Draw3DText(planData.startPos, string.Format("{0:0.00}", planData.speed));
-            debugDrawer.Draw3DText(planData.startPos, string.Format("{0:0.00} km/h", planData.startSpeed * 3.6f));
+            //debugDrawer.Draw3DText(planData.startPos, string.Format("{0:0.00} km/h", planData.startSpeed * 3.6f));
+            debugDrawer.Draw3DText(planData.startPos, string.Format("Width: {0:0.00} m", planData.startWidth));
         }
     }
 
