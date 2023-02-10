@@ -5,9 +5,9 @@ using UnityEngine;
 public class Waypoint : MonoBehaviour
 {
     //public string wpName;
-    public float width;
-    public int lanes;
-    public bool oneWay;
+    //public float width;
+    //public int lanes;
+    //public bool oneWay;
     
     public List<Waypoint> neighbors;
 
@@ -29,20 +29,20 @@ public class Waypoint : MonoBehaviour
     void OnDrawGizmos()
     {
         Gizmos.color = Color.yellow;
-        Gizmos.DrawWireSphere(GetPosition(), width / 2.0f);
+        Gizmos.DrawWireSphere(GetPosition(), 1.0f);
     }
 
     void OnDrawGizmosSelected()
     {
         Gizmos.color = Color.red;
-        Gizmos.DrawSphere(GetPosition(), width / 2.0f);
+        Gizmos.DrawSphere(GetPosition(), 1.0f);
 
         Gizmos.color = Color.green;
         foreach (Waypoint wp in neighbors)
         {
             if (wp != null)
             {
-                Gizmos.DrawSphere(wp.GetPosition(), wp.width / 2.0f);
+                Gizmos.DrawSphere(wp.GetPosition(), 1.0f);
             }
         }
     }

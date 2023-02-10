@@ -1,5 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
+using System.Collections.Specialized;
+using System.Text.RegularExpressions;
 using UnityEngine;
 using Utils;
 
@@ -10,7 +12,55 @@ public class PathFinder : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
+        // First update list of waypoints avaliable
         allWaypoints = FindObjectsOfType<Waypoint>();
+
+        // Calculate waypoint neighbours by their names
+        // gameobject name suffixed with "(0)" indicates start of a waypoint group
+
+        // First just go through all waypoints and add them to a dictionary,
+        // where their name's prefix is the key
+        // and the index in parenthesis is added as the index in list of waypoints
+
+        var wpsDict = new Dictionary<string, SortedDictionary<int, Waypoint>>();
+
+        string pattern = @"^(.*)\((\d)\)$";
+
+        foreach (Waypoint waypoint in allWaypoints)
+        {
+            Match match = Regex.Match(waypoint.name, pattern);
+
+            string prefix = match.Groups[1].Value;
+            string strIdx = match.Groups[2].Value;
+
+            if (!wpsDict.ContainsKey(prefix)) wpsDict.Add(prefix, new SortedDictionary<int, Waypoint>());
+
+            int idx;
+            if (!int.TryParse(strIdx, out idx)) continue;
+            wpsDict[prefix].Add(idx, waypoint);
+        }
+
+        // If index zero is not null of a set, then calculate neighbours for that set
+        foreach (var kv in wpsDict)
+        {
+            var wps = kv.Value;
+            if (wps.ContainsKey(0))
+            {
+                Waypoint lastWp = null;
+
+                foreach (var kv2 in wps)
+                {
+                    Waypoint wp = kv2.Value;
+
+                    if (lastWp != null)
+                    {
+                        lastWp.neighbors.Add(wp);
+                    }
+
+                    lastWp = wp;
+                }
+            }
+        }
     }
 
     private Waypoint ClosestWaypoint(Vector3 pos)
