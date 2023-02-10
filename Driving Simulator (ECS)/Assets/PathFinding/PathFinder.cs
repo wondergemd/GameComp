@@ -9,8 +9,7 @@ public class PathFinder : MonoBehaviour
 {
     Waypoint[] allWaypoints;
 
-    // Start is called before the first frame update
-    void Start()
+    void Awake()
     {
         // First update list of waypoints avaliable
         allWaypoints = FindObjectsOfType<Waypoint>();
@@ -24,7 +23,7 @@ public class PathFinder : MonoBehaviour
 
         var wpsDict = new Dictionary<string, SortedDictionary<int, Waypoint>>();
 
-        string pattern = @"^(.*)\((\d)\)$";
+        string pattern = @"^(.*)\((\d+)\)$";
 
         foreach (Waypoint waypoint in allWaypoints)
         {
@@ -105,13 +104,22 @@ public class PathFinder : MonoBehaviour
         return path;
     }
 
-    // A* pathfinding algorithm (graph) https://en.wikipedia.org/wiki/A*_search_algorithm
     public List<Waypoint> CalculatePath(Vector3 startPos, Vector3 endPos)
     {
-        // First find waypoints closest to start and end
         Waypoint start = ClosestWaypoint(startPos);
         Waypoint end = ClosestWaypoint(endPos);
+        return CalculatePath(start, end);
+    }
 
+    public List<Waypoint> CalculatePath(Vector3 startPos, Waypoint end)
+    {
+        Waypoint start = ClosestWaypoint(startPos);
+        return CalculatePath(start, end);
+    }
+
+    // A* pathfinding algorithm (graph) https://en.wikipedia.org/wiki/A*_search_algorithm
+    public List<Waypoint> CalculatePath(Waypoint start, Waypoint end)
+    {
         float startFAndHScore = HeuristicFunction(start, end);
 
         var openSet = new PriorityQueue<Waypoint, float>();

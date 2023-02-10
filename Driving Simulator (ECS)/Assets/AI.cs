@@ -23,15 +23,14 @@ public class AI : MonoBehaviour
         public float endSpeed; // segment start speed
     }
 
-    public DebugDrawer debugDrawer;
+    public DebugDrawer debugDrawer; // can be null
     public PathFinder pathFinder;
-    public Vehicle vehicle;
+    public Waypoint startWP;
+    public Waypoint targetWP;
 
-    public Transform origin;
-    public Transform target;
+    private Vehicle vehicle;
     private List<Waypoint> path = new List<Waypoint>();
     private List<SegmentData> plan = new List<SegmentData>();
-    //private MathLib.CatmullRomSpline pathSpline;
 
     private float maxAcc = 3f; // m/s^2
 
@@ -42,18 +41,23 @@ public class AI : MonoBehaviour
 
     void Start()
     {
-        //path = new NavMeshPath();
-        //NavMesh.CalculatePath(origin.position, target.position, NavMesh.AllAreas, path);
+        vehicle = GetComponent<Vehicle>();
 
-        path = pathFinder.CalculatePath(origin.position, target.position);
+        path = pathFinder.CalculatePath(startWP, targetWP);
+
+        bool res = false;
         if (path != null)
         {
-            if (!GeneratePlan(path))
+            if (GeneratePlan(path))
             {
-                Debug.LogError("Path unsuccessfully generated!!!");
+                res = true;
             }
         }
-        
+
+        if (!res)
+        {
+            Debug.LogError("Path unsuccessfully generated!!!");
+        }
     }
 
     // Calculate route data ahead of time
@@ -63,7 +67,7 @@ public class AI : MonoBehaviour
 
         if (path.Count == 0)
         {
-            Debug.LogError("Given NavMeshPath Length = 0!");
+            Debug.LogError("Given Path Length = 0!");
             return false;
         }
 
@@ -270,12 +274,15 @@ public class AI : MonoBehaviour
         //Debug.DrawLine(lastwpPos, lastwpPos + Vector3.up, Color.green);
         //Debug.DrawLine(wpPos, wpPos + Vector3.up, Color.green);
 
-        for (int i = 0; i < plan.Count; i++)
+        if (debugDrawer != null)
         {
-            SegmentData planData = plan[i];
+            for (int i = 0; i < plan.Count; i++)
+            {
+                SegmentData planData = plan[i];
 
-            debugDrawer.Draw3DText(planData.startPos, string.Format("{0:0.00} km/h", planData.startSpeed * 3.6f));
-            //debugDrawer.Draw3DText(planData.startPos, string.Format("Width: {0:0.00} m", planData.startWidth));
+                debugDrawer.Draw3DText(planData.startPos, string.Format("{0:0.00} km/h", planData.startSpeed * 3.6f));
+                //debugDrawer.Draw3DText(planData.startPos, string.Format("Width: {0:0.00} m", planData.startWidth));
+            }
         }
     }
 
