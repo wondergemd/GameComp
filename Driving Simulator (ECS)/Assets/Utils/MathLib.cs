@@ -10,10 +10,19 @@ namespace Utils
         // Adapted to 3D and different use case 
         public class CatmullRomCurve
         {
+            public struct CurvePoint
+            {
+                public Vector3 point;
+                public Vector3 dir;
+                public Vector3 up;
+                public Vector3 left;
+                public float radius;
+            }
+
             public Vector3 p0, p1, p2, p3;
             public float alpha;
 
-            public CatmullRomCurve(Vector3 p0, Vector3 p1, Vector3 p2, Vector3 p3, float alpha = 0.0f)
+            public CatmullRomCurve(Vector3 p0, Vector3 p1, Vector3 p2, Vector3 p3, float alpha = 0.5f)
             {
                 (this.p0, this.p1, this.p2, this.p3) = (p0, p1, p2, p3);
                 this.alpha = alpha;
@@ -36,6 +45,67 @@ namespace Utils
                 Vector3 B1 = Remap(k0, k2, A1, A2, u);
                 Vector3 B2 = Remap(k1, k3, A2, A3, u);
                 return Remap(k1, k2, B1, B2, u);
+            }
+
+            // Gets the closest point on the curve represented as 'numLines' line segments
+            public Vector3 ClosestPointOnCurve(Vector3 pos, int numLines)
+            {
+                for (int i = 0; i < numLines; i++)
+                {
+                    Vector3 start = GetPoint(i / (float)numLines);
+                    Vector3 mid = GetPoint((i + 0.5f) / (float)numLines);
+                    Vector3 end = GetPoint((i + 1) / (float)numLines);
+                    if (start == end) continue;
+
+                    // Check if 'pos' being projected on line segment falls in line segment bounds
+                    // If xnorm is < 0 on first line segment or > 1 on last line segment,
+                    // it falls outside curve completely and just return then
+                    float xnorm = InverseLerp(pos, start, end);
+                    if (
+                        (i == 0 && xnorm < 0.0f) ||
+                        (i == numLines - 1 && xnorm > 1.0f) ||
+                        (xnorm >= 0.0f && xnorm <= 1.0f))
+                    {
+                        //Debug.Log(i + ", " + xnorm);
+                        return Vector3.LerpUnclamped(start, end, xnorm);
+                    }
+                }
+
+                return Vector3.zero;
+            }
+
+            // Gets the closest point on the curve represented as 'numLines' line segments
+            public CurvePoint ClosestPointOnCurveMoreInfo(Vector3 pos, int numLines)
+            {
+                CurvePoint ret = new CurvePoint();
+
+                for (int i = 0; i < numLines; i++)
+                {
+                    Vector3 start = GetPoint(i / (float) numLines);
+                    Vector3 mid = GetPoint((i + 0.5f) / (float)numLines);
+                    Vector3 end = GetPoint((i + 1) / (float) numLines);
+                    if (start == end) continue;
+
+                    // Check if 'pos' being projected on line segment falls in line segment bounds
+                    // If xnorm is < 0 on first line segment or > 1 on last line segment,
+                    // it falls outside curve completely and just return then
+                    float xnorm = InverseLerp(pos, start, end);                  
+                    if (
+                        (i == 0 && xnorm < 0.0f) ||
+                        (i == numLines - 1 && xnorm > 1.0f) ||
+                        (xnorm >= 0.0f && xnorm <= 1.0f))
+                    {
+                        //Debug.Log(i + ", " + xnorm);
+                        ret.point = Vector3.LerpUnclamped(start, end, xnorm);
+                        ret.dir = (end - start).normalized;
+                        ret.up = Vector3.up;
+                        ret.left = Vector3.Cross(ret.dir, ret.up).normalized;
+                        ret.radius = MathLib.GetRadius(start, mid, end);
+                        break;
+                    }
+                }
+
+                return ret;
             }
 
             static Vector3 Remap(float a, float b, Vector3 c, Vector3 d, float u)
