@@ -8,6 +8,7 @@ using Utils;
 public class AI : MonoBehaviour
 {
     class SegmentData {
+        public MathLib.CatmullRomCurve catmullCurve;
         public Vector3 startPos;
         public Vector3 endPos;
         public Vector3 segmentVec;
@@ -30,6 +31,7 @@ public class AI : MonoBehaviour
     public Transform target;
     private List<Waypoint> path = new List<Waypoint>();
     private List<SegmentData> plan = new List<SegmentData>();
+    //private MathLib.CatmullRomSpline pathSpline;
 
     private float maxAcc = 3f; // m/s^2
 
@@ -44,7 +46,6 @@ public class AI : MonoBehaviour
         //NavMesh.CalculatePath(origin.position, target.position, NavMesh.AllAreas, path);
 
         path = pathFinder.CalculatePath(origin.position, target.position);
-
         if (path != null)
         {
             if (!GeneratePlan(path))
@@ -66,25 +67,31 @@ public class AI : MonoBehaviour
             return false;
         }
 
+        Vector3[] points = new Vector3[path.Count];
+
         for (int i = 0; i < path.Count - 1; i++)
         {
             SegmentData segment = new SegmentData();
 
+            Vector3 p0 = (i - 1 >= 0 ? path[i - 1] : path[0]).GetPosition();
+            Vector3 p3 = (i + 2 < path.Count ? path[i + 2] : path[path.Count - 1]).GetPosition();
             Vector3 wpStartPos = path[i].GetPosition();
             Vector3 wpEndPos = path[i + 1].GetPosition();
             Vector3 wpVec = wpEndPos - wpStartPos;
             Vector3 wpLeft = Vector3.Cross(wpVec, Vector3.up).normalized;
 
+            segment.catmullCurve = new MathLib.CatmullRomCurve(p0, wpStartPos, wpEndPos, p3);
+
             float startMaxSpeed, startRadius;
 
             if (i > 0)
             {
-                Vector3 wpLastPos = path[i - 1].GetPosition(); ;
+                Vector3 wpLastPos = path[i - 1].GetPosition();
                 //float curvature = MathLib.GetCurvature(wpVec, nextwpPos - wpPos);
                 //turnSpeed = Mathf.Sqrt(maxAcc / curvature);
                 //turnSpeed = turnSpeed * Mathf.Sin(Mathf.Min(Mathf.Asin(Mathf.Min(1, n2SpeedSq / turnSpeedSq)) + 2 * curvature * n1.length, pi * 0.5))
 
-                startRadius = MathLib.GetRadius(wpLastPos, wpStartPos, wpEndPos);
+                startRadius = segment.catmullCurve.ClosestPointOnCurveMoreInfo(wpStartPos, 10).radius; //MathLib.GetRadius(wpLastPos, wpStartPos, wpEndPos);
                 startMaxSpeed = Mathf.Sqrt(maxAcc * Mathf.Abs(startRadius));
 
                 SegmentData prevSegment = plan[i - 1];
@@ -106,11 +113,16 @@ public class AI : MonoBehaviour
             segment.endPos = wpEndPos;
             segment.segmentVec = wpVec;
             segment.length = wpVec.magnitude;
+            //segment.startWidth = path[i].width;
+            //segment.endWidth = path[i + 1].width;
             segment.startRadius = startRadius;
             segment.startMaxSpeed = startMaxSpeed;
             segment.startSpeed = startMaxSpeed; // will calculate new value later
 
             plan.Add(segment);
+
+            // For catmull rom spline
+            points[i] = wpStartPos;
         }
         SegmentData lastSeg = plan[plan.Count - 1];
         lastSeg.endRadius = float.MaxValue;
@@ -169,17 +181,12 @@ public class AI : MonoBehaviour
             SegmentData seg = plan[i];
 
             Vector3 pos = seg.endPos;
-            Vector3 segVec;
-            if (i == currSegIdx) 
-                segVec = pos - prevPos;
-            else 
-                segVec = seg.segmentVec;
-
+            Vector3 segVec = i == currSegIdx ? pos - prevPos : seg.segmentVec;
             float segLen = segVec.magnitude;
 
             if (remainder <= segLen)
             {
-                targetPos = segVec * (remainder / (segLen + 1e-30f)) + prevPos;
+                targetPos = seg.catmullCurve.ClosestPointOnCurve(segVec * (remainder / (segLen + 1e-30f)) + prevPos, 10);
                 break;
             }
 
@@ -231,6 +238,25 @@ public class AI : MonoBehaviour
 
     void LateUpdate()
     {
+        for (int s = 0; s < plan.Count; s++)
+        {
+            MathLib.CatmullRomCurve curve = plan[s].catmullCurve;
+
+            const int detail = 32;
+            Vector3 prev = curve.p1;
+            for (int i = 1; i < detail; i++)
+            {
+                float t = i / (detail - 1f);
+                Vector3 pt = curve.GetPoint(t);
+                Debug.DrawLine(prev, pt, Color.HSVToRGB(s / (float)plan.Count, 1.0f, 1.0f));
+                prev = pt;
+            }
+
+            Debug.DrawLine(curve.p1, curve.p1 + Vector3.up, Color.red);
+            Debug.DrawLine(curve.p2, curve.p2 + Vector3.up, Color.green);
+        }
+
+        /*
         if (path != null)
         {
             for (int i = 0; i < path.Count - 1; i++)
@@ -239,6 +265,7 @@ public class AI : MonoBehaviour
                 Debug.DrawLine(path[i].GetPosition(), path[i].GetPosition() + Vector3.up, Color.red);
             }
         }
+        */
 
         //Debug.DrawLine(lastwpPos, lastwpPos + Vector3.up, Color.green);
         //Debug.DrawLine(wpPos, wpPos + Vector3.up, Color.green);
@@ -247,8 +274,8 @@ public class AI : MonoBehaviour
         {
             SegmentData planData = plan[i];
 
-            //debugDrawer.Draw3DText(planData.startPos, string.Format("{0:0.00} km/h", planData.startSpeed * 3.6f));
-            debugDrawer.Draw3DText(planData.startPos, string.Format("Width: {0:0.00} m", planData.startWidth));
+            debugDrawer.Draw3DText(planData.startPos, string.Format("{0:0.00} km/h", planData.startSpeed * 3.6f));
+            //debugDrawer.Draw3DText(planData.startPos, string.Format("Width: {0:0.00} m", planData.startWidth));
         }
     }
 
