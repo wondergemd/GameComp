@@ -21,9 +21,9 @@ public class PathFinder : MonoBehaviour
         // where their name's prefix is the key
         // and the index in parenthesis is added as the index in list of waypoints
 
-        var wpsDict = new Dictionary<string, SortedDictionary<int, Waypoint>>();
+        var wpsDict = new Dictionary<string, SortedDictionary<double, Waypoint>>();
 
-        string pattern = @"^(.*)\((\d+)\)$";
+        string pattern = @"^(.*)\((\d*\.?\d+)\)$";
 
         foreach (Waypoint waypoint in allWaypoints)
         {
@@ -32,10 +32,10 @@ public class PathFinder : MonoBehaviour
             string prefix = match.Groups[1].Value;
             string strIdx = match.Groups[2].Value;
 
-            if (!wpsDict.ContainsKey(prefix)) wpsDict.Add(prefix, new SortedDictionary<int, Waypoint>());
+            if (!wpsDict.ContainsKey(prefix)) wpsDict.Add(prefix, new SortedDictionary<double, Waypoint>());
 
-            int idx;
-            if (!int.TryParse(strIdx, out idx)) continue;
+            double idx;
+            if (!double.TryParse(strIdx, out idx)) continue;
             wpsDict[prefix].Add(idx, waypoint);
         }
 
