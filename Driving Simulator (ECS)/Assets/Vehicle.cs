@@ -45,8 +45,8 @@ public class Vehicle : MonoBehaviour
         set { _steering = Mathf.Clamp(value, -1.0f, 1.0f); }
     }
 
-    private Vector3 lastVelocity;
-    private Vector3 acceleration;
+    private Vector3 lastVelocity = Vector3.zero;
+    private Vector3 acceleration = Vector3.zero;
 
     public void Start()
     {
@@ -103,12 +103,12 @@ public class Vehicle : MonoBehaviour
 
     public Vector3 GetPosition()
     {
-        return rb.position;
+        return rb != null ? rb.position : transform.position;
     }
 
     public Vector3 GetVelocity()
     {
-        return rb.velocity;
+        return rb != null ? rb.velocity : Vector3.zero;
     }
 
     public float GetSpeed()
@@ -128,6 +128,6 @@ public class Vehicle : MonoBehaviour
 
     public Quaternion GetRotation()
     {
-        return rb.rotation;
+        return rb != null ? rb.rotation : Quaternion.identity;
     }
 }

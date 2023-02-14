@@ -5,16 +5,19 @@ using System.Text.RegularExpressions;
 using UnityEngine;
 using Utils;
 
-public class PathFinder : MonoBehaviour
+public static class PathFinder
 {
-    Waypoint[] allWaypoints;
+    public static Waypoint[] allWaypoints;
 
-    void Awake()
+    // Waypoints that cars should spawn at
+    public static List<Waypoint> spawnWaypoints = new List<Waypoint>();
+
+    static PathFinder()
     {
         // First update list of waypoints avaliable
-        allWaypoints = FindObjectsOfType<Waypoint>();
+        allWaypoints = GameObject.FindObjectsOfType<Waypoint>();
 
-        // Calculate waypoint neighbours by their names
+        // Calculate waypoint neighbours on one line by their names
         // gameobject name suffixed with "(0)" indicates start of a waypoint group
 
         // First just go through all waypoints and add them to a dictionary,
@@ -60,9 +63,37 @@ public class PathFinder : MonoBehaviour
                 }
             }
         }
+
+        // Spawn waypoints must have longest path of 3 including self
+        foreach (Waypoint wp in allWaypoints)
+        {
+            if (LongestPath(wp) >= 3)
+            {
+                spawnWaypoints.Add(wp);
+            }
+        }
     }
 
-    private Waypoint ClosestWaypoint(Vector3 pos)
+    private static int LongestPath(Waypoint startWp)
+    {
+        foreach (Waypoint wp in startWp.neighbors)
+        {
+            return LongestPath(wp) + 1;
+        }
+        return 1;
+    }
+
+    public static Waypoint RandomWaypoint()
+    {
+        return allWaypoints[Random.Range(0, allWaypoints.Length - 1)];
+    }
+
+    public static Waypoint RandomSpawnWaypoint()
+    {
+        return spawnWaypoints[Random.Range(0, spawnWaypoints.Count - 1)];
+    }
+
+    public static Waypoint ClosestWaypoint(Vector3 pos)
     {
         float closestDist = float.MaxValue;
         Waypoint closestWp = null;
@@ -81,44 +112,56 @@ public class PathFinder : MonoBehaviour
         return closestWp;
     }
 
-    private float HeuristicFunction(Waypoint currentWp, Waypoint endWp)
+    public static SortedList<float, Waypoint> ClosestWaypoints(Vector3 pos)
     {
-        return (currentWp.GetPosition() - endWp.GetPosition()).sqrMagnitude;
-    }
+        var wps = new SortedList<float, Waypoint>();
 
-    private List<Waypoint> ReconstructPath(
-        Dictionary<Waypoint, Waypoint> cameFrom, Waypoint lastWp)
-    {
-        var path = new List<Waypoint>();
-        path.Add(lastWp);
-
-        Waypoint prevWp;
-        cameFrom.TryGetValue(lastWp, out prevWp);
-
-        while (prevWp != null)
+        foreach (Waypoint wp in allWaypoints)
         {
-            path.Insert(0, prevWp);
-            cameFrom.TryGetValue(prevWp, out prevWp);
+            wps.Add((wp.GetPosition() - pos).sqrMagnitude, wp);
         }
 
-        return path;
+        return wps;
     }
 
-    public List<Waypoint> CalculatePath(Vector3 startPos, Vector3 endPos)
+    public static Waypoint FurthestWaypoint(Vector3 pos)
     {
-        Waypoint start = ClosestWaypoint(startPos);
-        Waypoint end = ClosestWaypoint(endPos);
-        return CalculatePath(start, end);
+        float furthestDist = -1;
+        Waypoint furthestWP = null;
+
+        foreach (Waypoint wp in allWaypoints)
+        {
+            Vector3 wpPos = wp.transform.position;
+
+            float dist = (wpPos - pos).sqrMagnitude;
+            if (dist > furthestDist)
+            {
+                furthestDist = dist;
+                furthestWP = wp;
+            }
+        }
+
+        return furthestWP;
     }
 
-    public List<Waypoint> CalculatePath(Vector3 startPos, Waypoint end)
+    public static List<Waypoint> CalculatePath(Vector3 startPos, Waypoint end)
     {
-        Waypoint start = ClosestWaypoint(startPos);
-        return CalculatePath(start, end);
+        var wps = ClosestWaypoints(startPos);
+        foreach (Waypoint wp in wps.Values)
+        {
+            List<Waypoint> path = CalculatePath(wp, end);
+
+            if (path != null)
+            {
+                return path;
+            }
+        }
+
+        return null;
     }
 
     // A* pathfinding algorithm (graph) https://en.wikipedia.org/wiki/A*_search_algorithm
-    public List<Waypoint> CalculatePath(Waypoint start, Waypoint end)
+    public static List<Waypoint> CalculatePath(Waypoint start, Waypoint end)
     {
         float startFAndHScore = HeuristicFunction(start, end);
 
@@ -173,4 +216,26 @@ public class PathFinder : MonoBehaviour
         return null;
     }
 
+    private static float HeuristicFunction(Waypoint currentWp, Waypoint endWp)
+    {
+        return (currentWp.GetPosition() - endWp.GetPosition()).sqrMagnitude;
+    }
+
+    private static List<Waypoint> ReconstructPath(
+        Dictionary<Waypoint, Waypoint> cameFrom, Waypoint lastWp)
+    {
+        var path = new List<Waypoint>();
+        path.Add(lastWp);
+
+        Waypoint prevWp;
+        cameFrom.TryGetValue(lastWp, out prevWp);
+
+        while (prevWp != null)
+        {
+            path.Insert(0, prevWp);
+            cameFrom.TryGetValue(prevWp, out prevWp);
+        }
+
+        return path;
+    }
 }

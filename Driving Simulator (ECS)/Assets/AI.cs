@@ -24,9 +24,6 @@ public class AI : MonoBehaviour
     }
 
     public DebugDrawer debugDrawer; // can be null
-    public PathFinder pathFinder;
-    public Waypoint startWP;
-    public Waypoint targetWP;
 
     private Vehicle vehicle;
     private List<Waypoint> path = new List<Waypoint>();
@@ -42,8 +39,12 @@ public class AI : MonoBehaviour
     void Start()
     {
         vehicle = GetComponent<Vehicle>();
+        vehPos = vehicle.GetPosition();
+    }
 
-        path = pathFinder.CalculatePath(startWP, targetWP);
+    public void GoToTarget(Waypoint targetWP)
+    {
+        path = PathFinder.CalculatePath(vehPos, targetWP);
 
         bool res = false;
         if (path != null)
@@ -65,9 +66,9 @@ public class AI : MonoBehaviour
     {
         plan.Clear();
 
-        if (path.Count == 0)
+        if (path.Count < 3)
         {
-            Debug.LogError("Given Path Length = 0!");
+            Debug.LogError("Given Path Length < 3!");
             return false;
         }
 
@@ -201,7 +202,7 @@ public class AI : MonoBehaviour
 
     void FixedUpdate()
     {
-        if (currSegIdx >= plan.Count) return;
+        if (currSegIdx == plan.Count) return;
         
         vehPos = vehicle.GetPosition();
         vehSpeed = vehicle.GetSpeed();
@@ -225,17 +226,17 @@ public class AI : MonoBehaviour
         vehicle.Brake = Mathf.Min(-speedDiff, 0.5f);
         vehicle.Throttle = Mathf.Min(speedDiff, 0.5f);
 
-        if (vehXnormOnSeg > 1.0f)
-        {
-            currSegIdx = Mathf.Min(++currSegIdx, plan.Count - 1);
-        }
-
         //Debug.Log("currentCorner: " + currentCorner);
 
         //Gizmos.DrawSphere(lastwpPos, 1.0f);
         //Gizmos.DrawSphere(wpPos, 1.0f);
         Debug.DrawLine(targetPos, targetPos + Vector3.up, Color.cyan);
         //Debug.DrawLine(lastwpPos, lastwpPos + wpLeft);
+
+        if (vehXnormOnSeg > 1.0f)
+        {
+            currSegIdx = Mathf.Min(++currSegIdx, plan.Count);
+        }
     }
 
     void LateUpdate()
@@ -284,4 +285,8 @@ public class AI : MonoBehaviour
         }
     }
 
+    public bool HasReachedDestination()
+    {
+        return currSegIdx == plan.Count;
+    }
 }
