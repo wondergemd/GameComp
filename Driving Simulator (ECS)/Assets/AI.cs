@@ -23,15 +23,11 @@ public class AI : MonoBehaviour
         public float endSpeed; // segment start speed
     }
 
-    public DebugDrawer debugDrawer;
-    public PathFinder pathFinder;
-    public Vehicle vehicle;
+    public DebugDrawer debugDrawer; // can be null
 
-    public Transform origin;
-    public Transform target;
+    private Vehicle vehicle;
     private List<Waypoint> path = new List<Waypoint>();
     private List<SegmentData> plan = new List<SegmentData>();
-    //private MathLib.CatmullRomSpline pathSpline;
 
     private float maxAcc = 3f; // m/s^2
 
@@ -42,18 +38,27 @@ public class AI : MonoBehaviour
 
     void Start()
     {
-        //path = new NavMeshPath();
-        //NavMesh.CalculatePath(origin.position, target.position, NavMesh.AllAreas, path);
+        vehicle = GetComponent<Vehicle>();
+        vehPos = vehicle.GetPosition();
+    }
 
-        path = pathFinder.CalculatePath(origin.position, target.position);
+    public void GoToTarget(Waypoint targetWP)
+    {
+        path = PathFinder.CalculatePath(vehPos, targetWP);
+
+        bool res = false;
         if (path != null)
         {
-            if (!GeneratePlan(path))
+            if (GeneratePlan(path))
             {
-                Debug.LogError("Path unsuccessfully generated!!!");
+                res = true;
             }
         }
-        
+
+        if (!res)
+        {
+            Debug.LogError("Path unsuccessfully generated!!!");
+        }
     }
 
     // Calculate route data ahead of time
@@ -61,9 +66,9 @@ public class AI : MonoBehaviour
     {
         plan.Clear();
 
-        if (path.Count == 0)
+        if (path.Count < 3)
         {
-            Debug.LogError("Given NavMeshPath Length = 0!");
+            Debug.LogError("Given Path Length < 3!");
             return false;
         }
 
@@ -92,7 +97,7 @@ public class AI : MonoBehaviour
                 //turnSpeed = turnSpeed * Mathf.Sin(Mathf.Min(Mathf.Asin(Mathf.Min(1, n2SpeedSq / turnSpeedSq)) + 2 * curvature * n1.length, pi * 0.5))
 
                 startRadius = segment.catmullCurve.ClosestPointOnCurveMoreInfo(wpStartPos, 10).radius; //MathLib.GetRadius(wpLastPos, wpStartPos, wpEndPos);
-                startMaxSpeed = Mathf.Sqrt(maxAcc * Mathf.Abs(startRadius));
+                startMaxSpeed = Mathf.Min(100, Mathf.Sqrt(maxAcc * Mathf.Abs(startRadius)));
 
                 SegmentData prevSegment = plan[i - 1];
                 prevSegment.endRadius = startRadius;
@@ -106,7 +111,7 @@ public class AI : MonoBehaviour
             {
                 // first segment
                 startRadius = float.MaxValue;
-                startMaxSpeed = float.MaxValue;
+                startMaxSpeed = 5;
             }
 
             segment.startPos = wpStartPos;
@@ -127,6 +132,7 @@ public class AI : MonoBehaviour
         SegmentData lastSeg = plan[plan.Count - 1];
         lastSeg.endRadius = float.MaxValue;
         lastSeg.endMaxSpeed = 0f;
+        lastSeg.endSpeed = 0f;
 
         int resets = 0;
 
@@ -137,19 +143,16 @@ public class AI : MonoBehaviour
             SegmentData nextSeg = plan[i + 1];
 
             // vf^2 = vi^2 + 2 * a * d
-            float nextSegSpeedSqrAfterSlowing = currSeg.startSpeed * currSeg.startSpeed + 2 * -maxAcc * currSeg.length;
+            float nextSegSpeedSqrAfterSlowing = currSeg.endSpeed * currSeg.endSpeed + 2 * -maxAcc * nextSeg.length;
 
             //Debug.Log("i: " + i + ", " + currSeg.speed + ", " + Mathf.Sqrt(nextSegSpeedSqrAfterSlowing) + ", " + nextSeg.speed);
 
             // If we can't slow down before next segment speed, we must reduce our initial speed
             // and backtrace to make it so we can slow down
-            if (nextSegSpeedSqrAfterSlowing - 0.001f > nextSeg.startSpeed * nextSeg.startSpeed)
+            if (nextSegSpeedSqrAfterSlowing - 0.001f > nextSeg.endSpeed * nextSeg.endSpeed)
             {
-                currSeg.startSpeed = Mathf.Sqrt(nextSeg.startSpeed * nextSeg.startSpeed + 2 * maxAcc * currSeg.length);
-                if (i > 0)
-                {
-                    plan[i - 1].endSpeed = currSeg.startSpeed;
-                }
+                currSeg.endSpeed = Mathf.Sqrt(nextSeg.endSpeed * nextSeg.endSpeed + 2 * maxAcc * nextSeg.length);
+                nextSeg.startSpeed = currSeg.endSpeed;
 
                 //Debug.Log("new currsegSpeed: " + currSeg.speed);
                 if (i > 0)
@@ -199,8 +202,7 @@ public class AI : MonoBehaviour
 
     void FixedUpdate()
     {
-        //Debug.Log("currSeg: " + currSegIdx + ", planCount: " + plan.Count);
-        if (currSegIdx >= plan.Count) return;
+        if (currSegIdx == plan.Count) return;
         
         vehPos = vehicle.GetPosition();
         vehSpeed = vehicle.GetSpeed();
@@ -216,6 +218,7 @@ public class AI : MonoBehaviour
 
         float speedDiff = targetSpeed - vehSpeed;
         //Debug.Log(string.Format("speedDiff: {0:0.00} m/s", speedDiff));
+        //Debug.Log(targetSpeed);
 
         float angleToTarget = Mathf.Asin(Vector3.Dot(vehicle.transform.right, vehToTarget.normalized));
 
@@ -223,17 +226,17 @@ public class AI : MonoBehaviour
         vehicle.Brake = Mathf.Min(-speedDiff, 0.5f);
         vehicle.Throttle = Mathf.Min(speedDiff, 0.5f);
 
-        if (vehXnormOnSeg > 1.0f)
-        {
-            currSegIdx = Mathf.Min(++currSegIdx, plan.Count - 1);
-        }
-
         //Debug.Log("currentCorner: " + currentCorner);
 
         //Gizmos.DrawSphere(lastwpPos, 1.0f);
         //Gizmos.DrawSphere(wpPos, 1.0f);
         Debug.DrawLine(targetPos, targetPos + Vector3.up, Color.cyan);
         //Debug.DrawLine(lastwpPos, lastwpPos + wpLeft);
+
+        if (vehXnormOnSeg > 1.0f)
+        {
+            currSegIdx = Mathf.Min(++currSegIdx, plan.Count);
+        }
     }
 
     void LateUpdate()
@@ -270,13 +273,20 @@ public class AI : MonoBehaviour
         //Debug.DrawLine(lastwpPos, lastwpPos + Vector3.up, Color.green);
         //Debug.DrawLine(wpPos, wpPos + Vector3.up, Color.green);
 
-        for (int i = 0; i < plan.Count; i++)
+        if (debugDrawer != null)
         {
-            SegmentData planData = plan[i];
+            for (int i = 0; i < plan.Count; i++)
+            {
+                SegmentData planData = plan[i];
 
-            debugDrawer.Draw3DText(planData.startPos, string.Format("{0:0.00} km/h", planData.startSpeed * 3.6f));
-            //debugDrawer.Draw3DText(planData.startPos, string.Format("Width: {0:0.00} m", planData.startWidth));
+                debugDrawer.Draw3DText(planData.endPos, string.Format("{0:0.00} km/h", planData.endSpeed * 3.6f));
+                //debugDrawer.Draw3DText(planData.startPos, string.Format("Width: {0:0.00} m", planData.startWidth));
+            }
         }
     }
 
+    public bool HasReachedDestination()
+    {
+        return currSegIdx == plan.Count;
+    }
 }
