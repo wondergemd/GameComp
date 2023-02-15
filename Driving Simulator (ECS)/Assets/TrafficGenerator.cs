@@ -20,16 +20,27 @@ public class TrafficGenerator : MonoBehaviour
     void Update()
     {
         // Add AI cars
-        while (activeAIs.Count < MaxAICars)
+        if (activeAIs.Count < MaxAICars)
         {
-            Vector3 spawnPos = PathFinder.RandomSpawnWaypoint().GetPosition();
-            Quaternion spawnRot = Quaternion.identity;
+            int numToSpawn = MaxAICars - activeAIs.Count;
 
-            GameObject newVehObj = Instantiate(spawnList[Random.Range(0, spawnList.Count - 1)], spawnPos, spawnRot);
+            List<Waypoint> canidateWps = new List<Waypoint>(PathFinder.spawnWaypoints);
 
-            AI ai = newVehObj.GetComponent<AI>();
-            ai.GoToTarget(PathFinder.FurthestWaypoint(spawnPos));
-            activeAIs.Add(ai);
+            for (int i = 0; i < numToSpawn; i++)
+            {
+                int randIdx = Random.Range(0, canidateWps.Count - 1);
+
+                Vector3 spawnPos = canidateWps[randIdx].GetPosition();
+                Quaternion spawnRot = Quaternion.identity;
+
+                GameObject newVehObj = Instantiate(spawnList[Random.Range(0, spawnList.Count - 1)], spawnPos, spawnRot);
+
+                AI ai = newVehObj.GetComponent<AI>();
+                ai.GoToTarget(PathFinder.FurthestWaypoint(spawnPos));
+                activeAIs.Add(ai);
+
+                canidateWps.RemoveAt(randIdx);
+            }
         }
 
         // If an AI car has reached destination, despawn the car

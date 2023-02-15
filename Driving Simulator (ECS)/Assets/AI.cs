@@ -131,8 +131,10 @@ public class AI : MonoBehaviour
         }
         SegmentData lastSeg = plan[plan.Count - 1];
         lastSeg.endRadius = float.MaxValue;
-        lastSeg.endMaxSpeed = 0f;
-        lastSeg.endSpeed = 0f;
+
+        // 1 m/s to get them to cross over last waypoint and get despawned by traffic generator
+        lastSeg.endMaxSpeed = 1f;
+        lastSeg.endSpeed = 1f; 
 
         int resets = 0;
 
