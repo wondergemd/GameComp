@@ -7,6 +7,7 @@ public class Player : MonoBehaviour
     // The controlled vehicle
     public Vehicle Vehicle;
     public Text DebugText;
+    public AudioSource audioSource;
 
     private float textUpdateTimer = 0f;
     private MathLib.ExponentialSmoother accLongSmoother, accLatSmoother;
@@ -23,6 +24,8 @@ public class Player : MonoBehaviour
     public float turnSpeed = 1f;
     private float avoidTargetSteerAngle = 0f;
     public bool stopToggle = false;
+
+    public bool audioToggle = true;
 
 
     // Collision Avoidance/ADAS
@@ -116,6 +119,7 @@ public class Player : MonoBehaviour
         {
             Debug.DrawRay(sensorPos, Vehicle.transform.forward * sensorLength, Color.red);
         }
+
     }
 
 
@@ -161,9 +165,11 @@ public class Player : MonoBehaviour
             }
             avoidTargetSteerAngle = Vehicle.maxSteeringAngle * avoidMult;
             // interpolate target steering angle with the current steering angle over time
-            //Vehicle.Steering = Mathf.Lerp(Vehicle.Steering, avoidTargetSteerAngle, Time.deltaTime * turnSpeed);
-            Vehicle.Brake = 10000;
+            Vehicle.Steering = Mathf.Lerp(Vehicle.Steering, avoidTargetSteerAngle, Time.deltaTime * turnSpeed);
+            //Vehicle.Brake = 10000;
             Vehicle.Throttle = 0;
+
+            audioSource.Play();
         }
     }
 
@@ -177,6 +183,7 @@ public class Player : MonoBehaviour
 
     public void FixedUpdate()
     {
+
         // Positive for accelerating and negative for braking
         float accbrakeInput = Input.GetAxis("Vertical");
         float steeringInput = Input.GetAxis("Horizontal");
