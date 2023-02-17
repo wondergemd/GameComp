@@ -36,16 +36,6 @@ public class AI : MonoBehaviour
 
     private int currSegIdx = 0;
 
-    // Variables used for sensors
-    public float sensorLength = 8f;
-    public Vector3 frontSensorPos = new Vector3(2.25f, .5f, 0f);
-    public float frontSensorAngle = 30;
-    public float sensorSidePositions = 0.75f;
-    public bool avoiding = false;
-    public float avoidMult = 0f;
-    public float turnSpeed = 1f;
-    private float avoidTargetSteerAngle = 0f;
-
     void Awake()
     {
         vehicle = GetComponent<Vehicle>();
@@ -222,113 +212,6 @@ public class AI : MonoBehaviour
         return targetPos;
     }
 
-    // Collision Avoidance/ADAS
-    private void Sensors()
-    {
-        RaycastHit hit;
-        // Sensor starts at middle of car, additions set sensors at front of car and account for changes in direction
-        Vector3 sensorPos = transform.position;
-        sensorPos += (transform.forward * frontSensorPos.x);
-        sensorPos += (transform.up * frontSensorPos.y);
-
-        // if object is detected, avoidMult determines steering direction
-        avoiding = false;
-        avoidMult = 0;
-
-
-        // front left sensors
-        sensorPos -= transform.right * sensorSidePositions;
-        if (Physics.Raycast(sensorPos, transform.forward, out hit, sensorLength))
-        {
-            Debug.DrawLine(sensorPos, hit.point, Color.green);
-            avoiding = true;
-            avoidMult += 1.0f;
-        }
-        else if (Physics.Raycast(sensorPos, (Quaternion.AngleAxis(-frontSensorAngle, transform.up) * transform.forward), out hit, sensorLength * 0.75f))
-        {
-            Debug.DrawLine(sensorPos, hit.point, Color.green);
-            avoiding = true;
-            avoidMult += 0.75f;
-        }
-        else if (Physics.Raycast(sensorPos, Quaternion.AngleAxis(-45, transform.up) * transform.forward, out hit, sensorLength * 0.5f))
-        {
-            Debug.DrawLine(sensorPos, hit.point, Color.green);
-            avoiding = true;
-            avoidMult += 0.5f;
-        }
-        else
-        {
-            Debug.DrawRay(sensorPos, transform.forward * sensorLength, Color.red);
-            Debug.DrawRay(sensorPos, (Quaternion.AngleAxis(-frontSensorAngle, transform.up) * transform.forward) * sensorLength * 0.75f, Color.red);
-            Debug.DrawRay(sensorPos, (Quaternion.AngleAxis(-45, transform.up) * transform.forward) * sensorLength * 0.5f, Color.red);
-        }
-
-
-        // front right
-        sensorPos += (transform.right * sensorSidePositions) * 2;
-        if (Physics.Raycast(sensorPos, transform.forward, out hit, sensorLength))
-        {
-            Debug.DrawLine(sensorPos, hit.point, Color.green);
-            avoiding = true;
-            avoidMult -= 1.0f;
-        }
-        else if (Physics.Raycast(sensorPos, (Quaternion.AngleAxis(frontSensorAngle, transform.up) * transform.forward) * 0.75f, out hit, sensorLength))
-        {
-            Debug.DrawLine(sensorPos, hit.point, Color.green);
-            avoiding = true;
-            avoidMult -= 0.75f;
-        }
-        else if (Physics.Raycast(sensorPos, (Quaternion.AngleAxis(45, transform.up) * transform.forward) * 0.5f, out hit, sensorLength / 2))
-        {
-            Debug.DrawLine(sensorPos, hit.point, Color.green);
-            avoiding = true;
-            avoidMult -= 0.5f;
-        }
-        else
-        {
-            Debug.DrawRay(sensorPos, transform.forward * sensorLength, Color.red);
-            Debug.DrawRay(sensorPos, (Quaternion.AngleAxis(frontSensorAngle, transform.up) * transform.forward) * sensorLength * 0.75f, Color.red);
-            Debug.DrawRay(sensorPos, (Quaternion.AngleAxis(45, transform.up) * transform.forward) * sensorLength * 0.5f, Color.red);
-        }
-
-
-        // front center
-        sensorPos -= transform.right * sensorSidePositions;
-        if (Physics.Raycast(sensorPos, transform.forward, out hit, sensorLength))
-        {
-            Debug.DrawLine(sensorPos, hit.point, Color.green);
-            avoiding = true;
-
-            // if object is detected at front sensor, check the normal of the raycast to determine direction to turn
-            if (hit.normal.x < 0)
-            {
-                avoidMult = +1;
-            }
-            else if (hit.normal.x > 0)
-            {
-                avoidMult = -1;
-            }
-        }
-        else
-        {
-            Debug.DrawRay(sensorPos, transform.forward * sensorLength, Color.red);
-        }
-    }
-
-    private void AvoidObject()
-    {
-        if (avoiding)
-        {
-            Debug.Log("AvoidMult = " + avoidMult);
-            if (avoidMult == 0)
-            {
-
-            }
-            avoidTargetSteerAngle = vehicle.maxSteeringAngle * avoidMult;
-            // interpolate target steering angle with the current steering angle over time
-            vehicle.Steering = Mathf.Lerp(vehicle.Steering, avoidTargetSteerAngle, Time.deltaTime * turnSpeed);
-        }
-    }
 
     void FixedUpdate()
     {
@@ -367,10 +250,6 @@ public class AI : MonoBehaviour
         {
             currSegIdx = Mathf.Min(++currSegIdx, plan.Count);
         }
-
-        // Detect object & override AI pathing if detected
-        Sensors();
-        AvoidObject();
 
     }
 
