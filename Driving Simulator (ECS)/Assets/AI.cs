@@ -36,28 +36,38 @@ public class AI : MonoBehaviour
 
     private int currSegIdx = 0;
 
-    void Start()
+    void Awake()
     {
         vehicle = GetComponent<Vehicle>();
         vehPos = vehicle.GetPosition();
     }
 
+    /*
     public void GoToTarget(Waypoint targetWP)
     {
         path = PathFinder.CalculatePath(vehPos, targetWP);
 
-        bool res = false;
         if (path != null)
         {
-            if (GeneratePlan(path))
+            if (!GeneratePlan(path))
             {
-                res = true;
+                Debug.LogError("Plan unsuccessfully generated!!!");
             }
         }
-
-        if (!res)
+        else
         {
             Debug.LogError("Path unsuccessfully generated!!!");
+        }
+    }
+    */
+
+    public void FollowPath(List<Waypoint> path)
+    {
+        this.path = path;
+
+        if (!GeneratePlan(path))
+        {
+            Debug.LogError("Plan unsuccessfully generated!!!");
         }
     }
 
@@ -68,7 +78,7 @@ public class AI : MonoBehaviour
 
         if (path.Count < 3)
         {
-            Debug.LogError("Given Path Length < 3!");
+            Debug.LogError("Given Path Length < 3! Path length = " + path.Count);
             return false;
         }
 
@@ -131,8 +141,10 @@ public class AI : MonoBehaviour
         }
         SegmentData lastSeg = plan[plan.Count - 1];
         lastSeg.endRadius = float.MaxValue;
-        lastSeg.endMaxSpeed = 0f;
-        lastSeg.endSpeed = 0f;
+
+        // 1 m/s to get them to cross over last waypoint and get despawned by traffic generator
+        lastSeg.endMaxSpeed = 1f;
+        lastSeg.endSpeed = 1f; 
 
         int resets = 0;
 
