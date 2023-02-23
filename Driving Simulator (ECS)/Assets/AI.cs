@@ -7,14 +7,14 @@ using Utils;
 // Adapted from BeamNG.drive's lua/vehicle/ai.lua open source code and with permission
 public class AI : MonoBehaviour
 {
-    class SegmentData {
+    public class SegmentData {
         public MathLib.CatmullRomCurve catmullCurve;
+        public Waypoint startWp;
+        public Waypoint endWp;
         public Vector3 startPos;
         public Vector3 endPos;
         public Vector3 segmentVec;
         public float length;
-        public float startWidth;
-        public float endWidth;
         public float startRadius;
         public float endRadius;
         public float startMaxSpeed; // max speed to negotiate segment start
@@ -24,22 +24,32 @@ public class AI : MonoBehaviour
     }
 
     public DebugDrawer debugDrawer; // can be null
+    public PathFinder pathFinder;
+    public TrafficGenerator trafficGenerator;
 
-    private Vehicle vehicle;
-    private List<Waypoint> path = new List<Waypoint>();
-    private List<SegmentData> plan = new List<SegmentData>();
+    public Vehicle vehicle;
+    public List<SegmentData> plan = new List<SegmentData>();
 
-    private float maxAcc = 3f; // m/s^2
+    // m/s^2
+    public float minAcc = 2f;
+    public float maxAcc = 3f; 
 
     Vector3 vehPos = Vector3.zero;
     float vehSpeed = 0f; // m/s
 
-    private int currSegIdx = 0;
+    public int currSegIdx = 0;
+    public float currSegXnorm = 0f;
+
+    float tempdistBetween = 0f;
 
     void Awake()
     {
         vehicle = GetComponent<Vehicle>();
         vehPos = vehicle.GetPosition();
+
+        debugDrawer = FindObjectOfType<DebugDrawer>();
+        pathFinder = FindObjectOfType<PathFinder>();
+        trafficGenerator = FindObjectOfType<TrafficGenerator>();
     }
 
     /*
@@ -63,8 +73,6 @@ public class AI : MonoBehaviour
 
     public void FollowPath(List<Waypoint> path)
     {
-        this.path = path;
-
         if (!GeneratePlan(path))
         {
             Debug.LogError("Plan unsuccessfully generated!!!");
@@ -88,10 +96,12 @@ public class AI : MonoBehaviour
         {
             SegmentData segment = new SegmentData();
 
+            Waypoint startWp = path[i];
+            Waypoint endWp = path[i + 1];
             Vector3 p0 = (i - 1 >= 0 ? path[i - 1] : path[0]).GetPosition();
             Vector3 p3 = (i + 2 < path.Count ? path[i + 2] : path[path.Count - 1]).GetPosition();
-            Vector3 wpStartPos = path[i].GetPosition();
-            Vector3 wpEndPos = path[i + 1].GetPosition();
+            Vector3 wpStartPos = startWp.GetPosition();
+            Vector3 wpEndPos = endWp.GetPosition();
             Vector3 wpVec = wpEndPos - wpStartPos;
             Vector3 wpLeft = Vector3.Cross(wpVec, Vector3.up).normalized;
 
@@ -124,12 +134,12 @@ public class AI : MonoBehaviour
                 startMaxSpeed = 5;
             }
 
+            segment.startWp = startWp;
+            segment.endWp = endWp;
             segment.startPos = wpStartPos;
             segment.endPos = wpEndPos;
             segment.segmentVec = wpVec;
             segment.length = wpVec.magnitude;
-            //segment.startWidth = path[i].width;
-            //segment.endWidth = path[i + 1].width;
             segment.startRadius = startRadius;
             segment.startMaxSpeed = startMaxSpeed;
             segment.startSpeed = startMaxSpeed; // will calculate new value later
@@ -211,7 +221,46 @@ public class AI : MonoBehaviour
 
         return targetPos;
     }
+    
+    float CalculateTargetSpeed(SegmentData currSeg, float vehXnormOnSeg)
+    {
+        // Target speed calculated to traverse path
+        float targetSpeed = Mathf.Lerp(currSeg.startSpeed, currSeg.endSpeed, vehXnormOnSeg);
 
+        // Take into account AI vehicles
+        this.tempdistBetween = float.MaxValue;
+
+        foreach (AI ai in trafficGenerator.activeAIs)
+        {
+            if (this != ai)
+            {
+                SegmentData otherCurrSeg = ai.plan[Mathf.Min(ai.currSegIdx, ai.plan.Count - 1)];
+
+                if (currSeg.endWp == otherCurrSeg.endWp)
+                {
+                    if (this.currSegXnorm > ai.currSegXnorm)
+                    {
+                        continue;
+                    }
+                }
+
+                float distBetween = Mathf.Max(pathFinder.DistanceBetweenTwoPoints(this.vehPos, ai.vehPos, currSeg.endWp, otherCurrSeg.endWp) - 2f * vehSpeed - 5f, 0f);
+                //float distBetween = Mathf.Max(pathFinder.DistanceBetweenTwoPoints(this.vehPos, ai.vehPos, currSeg.endWp, otherCurrSeg.endWp), 0f);
+
+                this.tempdistBetween = Mathf.Min(distBetween, tempdistBetween);
+
+                // vf^2 = vi^2 + 2 * a * d
+                float speedSqrAfterSlowing = vehSpeed * vehSpeed + 2 * -minAcc * distBetween;
+
+                if (speedSqrAfterSlowing > ai.vehSpeed * ai.vehSpeed)
+                {
+                    targetSpeed = Mathf.Min(targetSpeed, ai.vehSpeed);    
+                }
+            }
+        }
+
+        return targetSpeed;
+    }
 
     void FixedUpdate()
     {
@@ -223,12 +272,11 @@ public class AI : MonoBehaviour
         // Contains precalculated information
         SegmentData segment = plan[currSegIdx];
 
-        float vehXnormOnSeg = MathLib.InverseLerp(vehPos, segment.startPos, segment.endPos);
-        Vector3 targetPos = CalculateTarget(segment, vehXnormOnSeg);
+        currSegXnorm = MathLib.InverseLerp(vehPos, segment.startPos, segment.endPos);
+        Vector3 targetPos = CalculateTarget(segment, currSegXnorm);
         Vector3 vehToTarget = targetPos - vehPos;
-       
-        float targetSpeed = Mathf.Lerp(segment.startSpeed, segment.endSpeed, vehXnormOnSeg);
 
+        float targetSpeed = CalculateTargetSpeed(segment, currSegXnorm);
         float speedDiff = targetSpeed - vehSpeed;
         //Debug.Log(string.Format("speedDiff: {0:0.00} m/s", speedDiff));
         //Debug.Log(targetSpeed);
@@ -246,7 +294,7 @@ public class AI : MonoBehaviour
         Debug.DrawLine(targetPos, targetPos + Vector3.up, Color.cyan);
         //Debug.DrawLine(lastwpPos, lastwpPos + wpLeft);
 
-        if (vehXnormOnSeg > 1.0f)
+        if (currSegXnorm > 1.0f)
         {
             currSegIdx = Mathf.Min(++currSegIdx, plan.Count);
         }
@@ -296,6 +344,8 @@ public class AI : MonoBehaviour
                 debugDrawer.Draw3DText(planData.endPos, string.Format("{0:0.00} km/h", planData.endSpeed * 3.6f));
                 //debugDrawer.Draw3DText(planData.startPos, string.Format("Width: {0:0.00} m", planData.startWidth));
             }
+
+            debugDrawer.Draw3DText(vehPos + Vector3.up * 2f, string.Format("dist between {0:0.00} m", this.tempdistBetween));
         }
     }
 

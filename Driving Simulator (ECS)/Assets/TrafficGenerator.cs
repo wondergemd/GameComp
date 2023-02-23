@@ -8,7 +8,7 @@ public class TrafficGenerator : MonoBehaviour
     public List<GameObject> spawnList = new List<GameObject>();
     public int MaxAICars = 3;
     
-    List<AI> activeAIs = new List<AI>();
+    public List<AI> activeAIs = new List<AI>();
 
     // Start is called before the first frame update
     void Start()

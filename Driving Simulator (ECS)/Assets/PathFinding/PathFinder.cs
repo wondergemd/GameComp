@@ -68,7 +68,7 @@ public class PathFinder : MonoBehaviour
         // Spawn waypoints must have longest path of 3 including self
         foreach (Waypoint wp in allWaypoints)
         {
-            if (LongestPath(wp) >= 3)
+            if (GreatestNumWPsPath(wp) >= 3)
             {
                 spawnWaypoints.Add(wp);
             }
@@ -86,14 +86,72 @@ public class PathFinder : MonoBehaviour
         }
     }
 
-    private int LongestPath(Waypoint startWp)
+    private int GreatestNumWPsPath(Waypoint startWp)
     {
         int longest = 1;
         foreach (Waypoint wp in startWp.neighbors)
         {
-            longest = Mathf.Max(LongestPath(wp) + 1, longest);
+            longest = Mathf.Max(GreatestNumWPsPath(wp) + 1, longest);
         }
         return longest;
+    }
+
+    // Waypoints should be close to respective points
+    public float DistanceBetweenTwoPoints(Vector3 a, Vector3 b, Waypoint aWp, Waypoint bWp)
+    {
+        if (aWp == bWp) return (a - b).magnitude;
+
+        List<Waypoint> path = CalculatePath(aWp, bWp);
+        if (path == null) return float.MaxValue;
+
+        float dist = 0;
+
+        Waypoint lastWp = null;
+
+        foreach (Waypoint wp in path)
+        {
+            if (lastWp != null)
+            {
+                dist += (wp.GetPosition() - lastWp.GetPosition()).magnitude;
+            }
+
+            lastWp = wp;
+        }
+
+        Vector3 a1WpPos = path[0].GetPosition();
+        Vector3 a2WpPos = path[1].GetPosition();
+
+        Vector3 b1WpPos = path[path.Count - 2].GetPosition();
+        Vector3 b2WpPos = path[path.Count - 1].GetPosition();
+
+        float aXnorm = -MathLib.InverseLerp(a, a1WpPos, a2WpPos);
+        float bXnorm = -MathLib.InverseLerp(b, b2WpPos, b1WpPos);
+
+        float aDist = (a2WpPos - a1WpPos).magnitude * aXnorm;
+        float bDist = (b2WpPos - b1WpPos).magnitude * bXnorm;
+
+        return dist + aDist + bDist;
+    }
+
+    public float DistanceBetweenWaypoints(Waypoint a, Waypoint b)
+    {
+        List<Waypoint> path = CalculatePath(a, b);
+
+        float dist = 0;
+
+        Waypoint lastWp = null;
+
+        foreach (Waypoint wp in path)
+        {
+            if (lastWp != null)
+            {
+                dist += (wp.GetPosition() - lastWp.GetPosition()).magnitude;
+            }
+
+            lastWp = wp;
+        }
+
+        return dist;
     }
 
     public Waypoint RandomWaypoint()
