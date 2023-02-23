@@ -180,11 +180,11 @@ namespace Utils
 
         public static float GetRadius(Vector3 wp1, Vector3 wp2, Vector3 wp3)
         {
-            Vector3 vec1 = wp2 - wp1;
-            Vector3 vec2 = wp3 - wp2;
-            Vector3 vec1Left = Vector3.Cross(vec1, Vector3.up);
+            float a = (wp1 - wp2).magnitude;
+            float b = (wp2 - wp3).magnitude;
+            float c = (wp3 - wp1).magnitude;
 
-            return IntersectsRayPlane(wp2, vec1Left.normalized, wp3, vec2.normalized);
+            return a * b * c / Mathf.Sqrt((a + b + c) * (b + c - a) * (c + a - b) * (a + b - c));
         }
 
         public static float GetCurvature(Vector3 vec1, Vector3 vec2)
