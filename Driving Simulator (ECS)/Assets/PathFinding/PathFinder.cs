@@ -97,7 +97,7 @@ public class PathFinder : MonoBehaviour
     }
 
     // Waypoints should be close to respective points
-    public float DistanceBetweenTwoPoints(Vector3 a, Vector3 b, Waypoint aWp, Waypoint bWp)
+    public float DistanceBetweenTwoPointsOnPath(Vector3 a, Vector3 b, Waypoint aWp, Waypoint bWp)
     {
         if (aWp == bWp) return (a - b).magnitude;
 

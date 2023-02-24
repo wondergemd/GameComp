@@ -244,17 +244,16 @@ public class AI : MonoBehaviour
                     }
                 }
 
-                float distBetween = Mathf.Max(pathFinder.DistanceBetweenTwoPoints(this.vehPos, ai.vehPos, currSeg.endWp, otherCurrSeg.endWp) - 2f * vehSpeed - 5f, 0f);
-                //float distBetween = Mathf.Max(pathFinder.DistanceBetweenTwoPoints(this.vehPos, ai.vehPos, currSeg.endWp, otherCurrSeg.endWp), 0f);
-
+                float distBetween = pathFinder.DistanceBetweenTwoPointsOnPath(this.vehPos, ai.vehPos, currSeg.endWp, otherCurrSeg.endWp) - 2f * vehSpeed - 5f;
                 this.tempdistBetween = Mathf.Min(distBetween, tempdistBetween);
 
                 // vf^2 = vi^2 + 2 * a * d
-                float speedSqrAfterSlowing = vehSpeed * vehSpeed + 2 * -minAcc * distBetween;
+                float speedSqrAfterSlowing = vehSpeed * vehSpeed + 2 * -maxAcc * distBetween;
 
                 if (speedSqrAfterSlowing > ai.vehSpeed * ai.vehSpeed)
                 {
-                    targetSpeed = Mathf.Min(targetSpeed, ai.vehSpeed);    
+                    float followAISpeed = Mathf.Sqrt(ai.vehSpeed * ai.vehSpeed + 2 * maxAcc * distBetween);
+                    targetSpeed = Mathf.Min(targetSpeed, followAISpeed);
                 }
             }
         }
