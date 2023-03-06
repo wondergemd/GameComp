@@ -31,6 +31,8 @@ public class Player : MonoBehaviour
     public Vector3 backSensorPos = new Vector3(-1f, 1f, 0.75f);
     public float blindSpotAngle = 20;
     public float blindSpotLength = 5f;
+    public bool blindSpotLeft = false;
+    public bool blindSpotRight = false;
 
 
     [Space(10)]
@@ -43,8 +45,6 @@ public class Player : MonoBehaviour
     public bool audioToggle = true;
 
     // Private Variables
-    private float blindTime;
-    private bool blindSpot = false;
     private bool avoiding = false;
     private float avoidTime;
 
@@ -107,18 +107,11 @@ public class Player : MonoBehaviour
         blindSpotSensorPos += (Vehicle.transform.up * backSensorPos.y);
         blindSpotSensorPos += (Vehicle.transform.right * backSensorPos.z);
 
-
-        if (blindSpot && Time.time - blindTime >= holdTime)
-        {
-            blindSpot = false;
-        }
-
         // Right Sensor
         if (Physics.Raycast(blindSpotSensorPos, (Quaternion.AngleAxis(-blindSpotAngle, Vehicle.transform.up) * -Vehicle.transform.forward), out hit, blindSpotLength))
         {
             Debug.DrawLine(blindSpotSensorPos, hit.point, Color.green);
-            blindSpot = true;
-            blindTime = Time.time;
+            blindSpotRight = true;
         }
         else
         {
@@ -130,8 +123,7 @@ public class Player : MonoBehaviour
         if (Physics.Raycast(blindSpotSensorPos, (Quaternion.AngleAxis(blindSpotAngle, Vehicle.transform.up) * -Vehicle.transform.forward), out hit, blindSpotLength))
         {
             Debug.DrawLine(blindSpotSensorPos, hit.point, Color.green);
-            blindSpot = true;
-            blindTime = Time.time;
+            blindSpotLeft = true;
         }
         else
         {

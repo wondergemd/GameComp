@@ -7,6 +7,7 @@ public class UI : MonoBehaviour
 {
 
     public Vehicle vehicle;
+    public Player player;
     public Image speedometerArrow;
     public Image blindSpotIndicatorLeft;
     public Image blindSpotIndicatorRight;
@@ -14,20 +15,16 @@ public class UI : MonoBehaviour
     public float blindSpotFlashInterval = 0.2f;
     public float flashDuration = 2.0f;
     public Color flashColor;
-    public bool blindSpotleft = false;
-    public bool blindSpotright = false;
-    public bool blindSpotFlashing = false;
+
+    private bool leftFlashing = false;
+    private bool rightFlashing = false;
 
     private Color originalColor;
 
-    private void BlindSpotIndicatorFlash(int LeftOrRight)
-    {
-        
-    }
 
-    IEnumerator FlashCoroutine()
+    IEnumerator FlashLeftCoroutine()
     {
-        blindSpotFlashing = true;
+        leftFlashing = true;
         float startTime = Time.time;
         while (Time.time - startTime < flashDuration)
         {
@@ -36,30 +33,52 @@ public class UI : MonoBehaviour
             blindSpotIndicatorLeft.color = originalColor;
             yield return new WaitForSeconds(blindSpotFlashInterval);
         }
-        blindSpotFlashing = false;
+        leftFlashing = false;
+    }
+
+    IEnumerator FlashRightCoroutine()
+    {
+        rightFlashing = true;
+        float startTime = Time.time;
+        while (Time.time - startTime < flashDuration)
+        {
+            blindSpotIndicatorRight.color = flashColor;
+            yield return new WaitForSeconds(blindSpotFlashInterval);
+            blindSpotIndicatorRight.color = originalColor;
+            yield return new WaitForSeconds(blindSpotFlashInterval);
+        }
+        rightFlashing = false;
     }
 
     // Start is called before the first frame update
     void Start()
     {
         originalColor = blindSpotIndicatorLeft.color;
-
     }
 
     // Update is called once per frame
     void Update()
     {
-        vehicle.GetSpeed();
+        player.Vehicle.GetSpeed();
 
-        speedometerArrow.transform.rotation = Quaternion.Euler(0, 0, -vehicle.GetSpeed() * speedScalingFactor);
+        speedometerArrow.transform.rotation = Quaternion.Euler(0, 0, -player.Vehicle.GetSpeed() * speedScalingFactor);
 
-        if (blindSpotleft)
+        if (player.blindSpotLeft)
         {
-            if (!blindSpotFlashing)
+            if (!leftFlashing)
             {
-                StartCoroutine(FlashCoroutine());
+                StartCoroutine(FlashLeftCoroutine());
             }
-            blindSpotleft = false;
+            player.blindSpotLeft = false;
+        }
+
+        if (player.blindSpotRight)
+        {
+            if (!rightFlashing)
+            {
+                StartCoroutine(FlashRightCoroutine());
+            }
+            player.blindSpotRight = false;
         }
 
     }
