@@ -38,7 +38,7 @@ RenderSettings:
   m_ReflectionIntensity: 1
   m_CustomReflection: {fileID: 0}
   m_Sun: {fileID: 0}
-  m_IndirectSpecularColor: {r: 2027.6133, g: 1997.1836, b: 2411.043, a: 1}
+  m_IndirectSpecularColor: {r: 2159.1416, g: 2263.6016, b: 3287.3242, a: 1}
   m_UseRadianceAmbientProbe: 0
 --- !u!157 &3
 LightmapSettings:
@@ -966,8 +966,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: fe87c0e1cc204ed48ad3b37840f39efc, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  m_Material: {fileID: 0}
-  m_Color: {r: 1, g: 1, b: 1, a: 1}
+  m_Material: {fileID: 2100000, guid: 30dc370b164eefc43b95744fc796dad0, type: 3}
+  m_Color: {r: 0, g: 0, b: 0, a: 1}
   m_RaycastTarget: 1
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
   m_Maskable: 1
@@ -982,7 +982,7 @@ MonoBehaviour:
   m_FillAmount: 1
   m_FillClockwise: 1
   m_FillOrigin: 0
-  m_UseSpriteMesh: 0
+  m_UseSpriteMesh: 1
   m_PixelsPerUnitMultiplier: 1
 --- !u!222 &314040947
 CanvasRenderer:
@@ -1393,16 +1393,14 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   vehicle: {fileID: 1282425089}
+  player: {fileID: 1503684836}
   speedometerArrow: {fileID: 1436621846}
   blindSpotIndicatorLeft: {fileID: 314040946}
   blindSpotIndicatorRight: {fileID: 802374982}
   speedScalingFactor: 3.5
   blindSpotFlashInterval: 0.2
   flashDuration: 2
-  flashColor: {r: 1, g: 0, b: 0, a: 0}
-  blindSpotleft: 0
-  blindSpotright: 0
-  blindSpotFlashing: 0
+  flashColor: {r: 1, g: 0.21905372, b: 0, a: 1}
 --- !u!1 &602976991
 GameObject:
   m_ObjectHideFlags: 0
@@ -1803,8 +1801,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: fe87c0e1cc204ed48ad3b37840f39efc, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  m_Material: {fileID: 0}
-  m_Color: {r: 1, g: 1, b: 1, a: 1}
+  m_Material: {fileID: 2100000, guid: 30dc370b164eefc43b95744fc796dad0, type: 3}
+  m_Color: {r: 0, g: 0, b: 0, a: 1}
   m_RaycastTarget: 1
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
   m_Maskable: 1
@@ -1819,7 +1817,7 @@ MonoBehaviour:
   m_FillAmount: 1
   m_FillClockwise: 1
   m_FillOrigin: 0
-  m_UseSpriteMesh: 0
+  m_UseSpriteMesh: 1
   m_PixelsPerUnitMultiplier: 1
 --- !u!222 &802374983
 CanvasRenderer:
@@ -2629,6 +2627,8 @@ MonoBehaviour:
   backSensorPos: {x: -1, y: 1, z: 0.75}
   blindSpotAngle: 20
   blindSpotLength: 5
+  blindSpotLeft: 0
+  blindSpotRight: 0
   maxSteeringWheelAngle: 180
   audioToggle: 1
 --- !u!4 &1503684837
