@@ -72,6 +72,12 @@ public class PathFinder : MonoBehaviour
             {
                 spawnWaypoints.Add(wp);
             }
+
+            // Add previous neighbors to waypoints
+            foreach (Waypoint wpAdj in wp.neighbors)
+            {
+                wpAdj.prevNeighbors.Add(wp);
+            }
         }
     }
 
@@ -136,6 +142,7 @@ public class PathFinder : MonoBehaviour
     public float DistanceBetweenWaypoints(Waypoint a, Waypoint b)
     {
         List<Waypoint> path = CalculatePath(a, b);
+        if (path == null) return float.MaxValue;
 
         float dist = 0;
 
@@ -152,6 +159,53 @@ public class PathFinder : MonoBehaviour
         }
 
         return dist;
+    }
+
+    public (Waypoint, Waypoint, float) GetSegmentVehicleOn(Vector3 pos)
+    {
+        var wps = ClosestWaypoints(pos);
+
+        foreach (Waypoint wp in wps)
+        {
+            Vector3 wpPos = wp.GetPosition();
+
+            foreach (Waypoint nextWp in wp.neighbors)
+            {
+                Vector3 nextWpPos = nextWp.GetPosition();
+                float xnorm = MathLib.InverseLerp(pos, wpPos, nextWpPos);
+
+                if (xnorm >= 0 && xnorm <= 1)
+                {
+                    Vector3 perpVec = 0.5f * wp.width * Vector3.Cross(nextWpPos - wpPos, Vector3.up).normalized;
+                    
+                    float xnorm2 = MathLib.InverseLerp(pos, wpPos, wpPos + perpVec);
+
+                    if (xnorm2 >= -1 && xnorm2 <= 1)
+                    {
+                        return (wp, nextWp, xnorm);
+                    }
+                }
+            }
+
+            foreach (Waypoint prevWp in wp.prevNeighbors)
+            {
+                Vector3 prevWpPos = prevWp.GetPosition();
+                float xnorm = MathLib.InverseLerp(pos, prevWpPos, wpPos);
+
+                if (xnorm >= 0 && xnorm <= 1)
+                {
+                    Vector3 perpVec = 0.5f * wp.width * Vector3.Cross(wpPos - prevWpPos, Vector3.up).normalized;
+
+                    float xnorm2 = MathLib.InverseLerp(pos, wpPos, wpPos + perpVec);
+
+                    if (xnorm2 >= -1 && xnorm2 <= 1)
+                    {
+                        return (prevWp, wp, xnorm);
+                    }
+                }
+            }
+        }
+        return (null, null, 0.0f);
     }
 
     public Waypoint RandomWaypoint()
@@ -184,13 +238,39 @@ public class PathFinder : MonoBehaviour
         return closestWp;
     }
 
-    public SortedList<float, Waypoint> ClosestWaypoints(Vector3 pos)
+    public Waypoint[] ClosestWaypoints(Vector3 pos)
     {
-        var wps = new SortedList<float, Waypoint>();
+        int numWps = allWaypoints.Length;
+
+        float[] dists = new float[numWps];
+        for (int i = 0; i < numWps; i++)
+        {
+            dists[i] = float.MaxValue;
+        }
+
+        Waypoint[] wps = new Waypoint[numWps];
 
         foreach (Waypoint wp in allWaypoints)
         {
-            wps.Add((wp.GetPosition() - pos).sqrMagnitude, wp);
+            float dist = (wp.GetPosition() - pos).sqrMagnitude;
+
+            if (dist < dists[numWps - 1])
+            {
+                for (int i1 = 0; i1 < numWps; i1++)
+                {
+                    if (dist < dists[i1])
+                    {
+                        for (int i2 = numWps - 1; i2 >= i1 + 1; i2--)
+                        {
+                            wps[i2] = wps[i2 - 1];
+                            dists[i2] = dists[i2 - 1];
+                        }
+                        wps[i1] = wp;
+                        dists[i1] = dist;
+                        break;
+                    }
+                }
+            }
         }
 
         return wps;
@@ -225,7 +305,7 @@ public class PathFinder : MonoBehaviour
     public List<Waypoint> CalculatePath(Vector3 startPos, Waypoint end)
     {
         var wps = ClosestWaypoints(startPos);
-        foreach (Waypoint wp in wps.Values)
+        foreach (Waypoint wp in wps)
         {
             List<Waypoint> path = CalculatePath(wp, end);
 

@@ -29,6 +29,7 @@ public class AI : MonoBehaviour
 
     public Vehicle vehicle;
     public List<SegmentData> plan = new List<SegmentData>();
+    public Vehicle playerVehicle;
 
     // m/s^2
     public float minAcc = 2f;
@@ -50,6 +51,7 @@ public class AI : MonoBehaviour
         debugDrawer = FindObjectOfType<DebugDrawer>();
         pathFinder = FindObjectOfType<PathFinder>();
         trafficGenerator = FindObjectOfType<TrafficGenerator>();
+        playerVehicle = FindObjectOfType<Player>().GetComponent<Vehicle>();
     }
 
     /*
@@ -227,7 +229,7 @@ public class AI : MonoBehaviour
         // Target speed calculated to traverse path
         float targetSpeed = Mathf.Lerp(currSeg.startSpeed, currSeg.endSpeed, vehXnormOnSeg);
 
-        // Take into account AI vehicles
+        // Take into account AI vehicles and player vehicle by keeping distance between them
         this.tempdistBetween = float.MaxValue;
 
         foreach (AI ai in trafficGenerator.activeAIs)
@@ -258,6 +260,47 @@ public class AI : MonoBehaviour
             }
         }
 
+        // Predict trajectory of player vehicle
+        Vector3 pPos = playerVehicle.GetPosition();
+        float pSpeed = playerVehicle.GetSpeed();
+
+        /*
+        float pTimeToStop = pSpeed / maxAcc;
+        Vector3 pFuturePos =
+            playerVehicle.GetVelocity() * pTimeToStop +
+            0.5f * pTimeToStop * pTimeToStop * playerVehicle.GetAccelerationVec() +
+            pPos;
+        */
+
+        (Waypoint, Waypoint, float) seg = pathFinder.GetSegmentVehicleOn(pPos);
+        if (seg.Item1 != null && !(currSeg.endWp == seg.Item2 && this.currSegXnorm > seg.Item3))
+        {
+            float distBetween = pathFinder.DistanceBetweenTwoPointsOnPath(this.vehPos, pPos, currSeg.endWp, seg.Item2) - 2f * vehSpeed - 5f;
+            this.tempdistBetween = Mathf.Min(distBetween, tempdistBetween);
+
+            // vf^2 = vi^2 + 2 * a * d
+            float speedSqrAfterSlowing = vehSpeed * vehSpeed + 2 * -maxAcc * distBetween;
+
+            if (speedSqrAfterSlowing > pSpeed * pSpeed)
+            {
+                float followAISpeed = Mathf.Sqrt(pSpeed * pSpeed + 2 * maxAcc * distBetween);
+                targetSpeed = Mathf.Min(targetSpeed, followAISpeed);
+            }
+
+            //Debug.DrawLine(seg.Item1.GetPosition(), seg.Item2.GetPosition(), Color.red);
+            /*
+            List<Waypoint> pPath = pathFinder.CalculatePath(seg.Item1, pathFinder.ClosestWaypoint(pFuturePos));
+            if (pPath != null)
+            {
+
+            }
+            for (int i = 0; i < pPath.Count - 1; i++)
+            {
+                Debug.DrawLine(pPath[i].GetPosition(), pPath[i + 1].GetPosition(), Color.red);
+            }
+            */
+        }
+
         return targetSpeed;
     }
 
@@ -283,8 +326,8 @@ public class AI : MonoBehaviour
         float angleToTarget = Mathf.Asin(Vector3.Dot(vehicle.transform.right, vehToTarget.normalized));
 
         vehicle.Steering = angleToTarget;
-        vehicle.Brake = Mathf.Min(-speedDiff, 0.5f);
-        vehicle.Throttle = Mathf.Min(speedDiff, 0.5f);
+        vehicle.Brake = Mathf.Min(-speedDiff, 1.0f);
+        vehicle.Throttle = Mathf.Min(speedDiff, 1.0f);
 
         //Debug.Log("currentCorner: " + currentCorner);
 
@@ -302,6 +345,7 @@ public class AI : MonoBehaviour
 
     void LateUpdate()
     {
+        /*
         for (int s = 0; s < plan.Count; s++)
         {
             MathLib.CatmullRomCurve curve = plan[s].catmullCurve;
@@ -319,6 +363,7 @@ public class AI : MonoBehaviour
             Debug.DrawLine(curve.p1, curve.p1 + Vector3.up, Color.red);
             Debug.DrawLine(curve.p2, curve.p2 + Vector3.up, Color.green);
         }
+        */
 
         /*
         if (path != null)

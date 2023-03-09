@@ -4,12 +4,10 @@ using UnityEngine;
 
 public class Waypoint : MonoBehaviour
 {
-    //public string wpName;
-    //public float width;
-    //public int lanes;
-    //public bool oneWay;
+    public float width;
     
     public List<Waypoint> neighbors;
+    public List<Waypoint> prevNeighbors;
 
     // Start is called before the first frame update
     void Start()
