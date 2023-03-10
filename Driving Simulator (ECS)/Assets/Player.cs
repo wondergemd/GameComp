@@ -98,24 +98,29 @@ public class Player : MonoBehaviour
 
     private void ForwardCollisionDetection()
     {
+        float minDist = float.MaxValue;
+
         // get list of AI controlled vehicles from traffic Generator
         for (int i = 0; i < trafficGenerator.activeAIs.Count; i++)
         {
             // get playerVehicle Segement info
             (Waypoint, Waypoint, float) currSeg = pathFinder.GetSegmentVehicleOn(playerVehicle.GetPosition());
             // get single AI Vehicle 
-            Vehicle aiVehicle = trafficGenerator.spawnList[i].GetComponent<Vehicle>();
-            Vector3 aiPos = aiVehicle.GetPosition();
-            // get segement info for AI vehicle
-            (Waypoint, Waypoint, float) seg = pathFinder.GetSegmentVehicleOn(aiPos);
-            
-            if (seg.Item1 != null && !(currSeg.Item2 == seg.Item2 && currSeg.Item3 > seg.Item3))
+            AI ai = trafficGenerator.activeAIs[i];
+            Vehicle aiVeh = ai.vehicle;
+
+            AI.SegmentData aiSeg = ai.plan[Mathf.Min(ai.currSegIdx, ai.plan.Count - 1)];
+
+            if (currSeg.Item1 != null && !(currSeg.Item2 == aiSeg.endWp && currSeg.Item3 > ai.currSegXnorm))
             {
                 // get path distance (non-linear) between player vehicle and AI vehicle
-                float distBetweenNow = pathFinder.DistanceBetweenTwoPointsOnPath(playerVehicle.GetPosition(), aiPos, currSeg.Item2, seg.Item2);
+                float distBetweenNow = pathFinder.DistanceBetweenTwoPointsOnPath(playerVehicle.GetPosition(), aiVeh.GetPosition(), currSeg.Item2, aiSeg.endWp);
 
+                minDist = Math.Min(minDist, distBetweenNow);
+
+                /*
                 // find closest distance player and AI vehicle will approach (distance = (player.velocity^2 - AI.velocity^2) / (2*player.acceleration))
-                float distBetweenFuture = (Mathf.Pow(aiVehicle.GetSpeed(), 2f) - Mathf.Pow(playerVehicle.GetSpeed(), 2f)) / (2f * playerVehicle.GetAcceleration());
+                float distBetweenFuture = (Mathf.Pow(ai.vehicle.GetSpeed(), 2f) - Mathf.Pow(playerVehicle.GetSpeed(), 2f)) / (2f * playerVehicle.GetAcceleration());
 
                 // activate emergency brakes if collision path detected within range
                 float distBetweenDiff = distBetweenNow - distBetweenFuture;
@@ -124,9 +129,10 @@ public class Player : MonoBehaviour
                     collisionDetected = true;
                     collisionDetectedTime = Time.time;
                 }
+                */
             }
         }
-
+        Debug.Log(minDist);
     }
 
 
@@ -249,7 +255,7 @@ else
         // Detect object & override AI pathing if detected
         SteeringWheelTurning(steeringInput);
         BlindSpotIndicator();
-        //ForwardCollisionDetection();
+        ForwardCollisionDetection();
         EmergencyBraking();
 
 
