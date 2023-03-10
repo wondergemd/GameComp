@@ -43,6 +43,8 @@ public class AI : MonoBehaviour
 
     float tempdistBetween = 0f;
 
+    public bool debugPaths = false;
+
     void Awake()
     {
         vehicle = GetComponent<Vehicle>();
@@ -345,25 +347,27 @@ public class AI : MonoBehaviour
 
     void LateUpdate()
     {
-        /*
-        for (int s = 0; s < plan.Count; s++)
+
+        if (debugPaths)
         {
-            MathLib.CatmullRomCurve curve = plan[s].catmullCurve;
-
-            const int detail = 32;
-            Vector3 prev = curve.p1;
-            for (int i = 1; i < detail; i++)
+            for (int s = 0; s < plan.Count; s++)
             {
-                float t = i / (detail - 1f);
-                Vector3 pt = curve.GetPoint(t);
-                Debug.DrawLine(prev, pt, Color.HSVToRGB(s / (float)plan.Count, 1.0f, 1.0f));
-                prev = pt;
-            }
+                MathLib.CatmullRomCurve curve = plan[s].catmullCurve;
 
-            Debug.DrawLine(curve.p1, curve.p1 + Vector3.up, Color.red);
-            Debug.DrawLine(curve.p2, curve.p2 + Vector3.up, Color.green);
+                const int detail = 32;
+                Vector3 prev = curve.p1;
+                for (int i = 1; i < detail; i++)
+                {
+                    float t = i / (detail - 1f);
+                    Vector3 pt = curve.GetPoint(t);
+                    Debug.DrawLine(prev, pt, Color.HSVToRGB(s / (float)plan.Count, 1.0f, 1.0f));
+                    prev = pt;
+                }
+
+                Debug.DrawLine(curve.p1, curve.p1 + Vector3.up, Color.red);
+                Debug.DrawLine(curve.p2, curve.p2 + Vector3.up, Color.green);
+            }
         }
-        */
 
         /*
         if (path != null)
