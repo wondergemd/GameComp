@@ -100,11 +100,12 @@ public class Player : MonoBehaviour
     {
         float minDist = float.MaxValue;
 
+        // get playerVehicle Segement info
+        (Waypoint, Waypoint, float) currSeg = pathFinder.GetSegmentVehicleOn(playerVehicle.GetPosition());
+
         // get list of AI controlled vehicles from traffic Generator
         for (int i = 0; i < trafficGenerator.activeAIs.Count; i++)
         {
-            // get playerVehicle Segement info
-            (Waypoint, Waypoint, float) currSeg = pathFinder.GetSegmentVehicleOn(playerVehicle.GetPosition());
             // get single AI Vehicle 
             AI ai = trafficGenerator.activeAIs[i];
             Vehicle aiVeh = ai.vehicle;
