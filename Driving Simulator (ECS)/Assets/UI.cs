@@ -29,6 +29,7 @@ public class UI : MonoBehaviour
     private Color originalColor;
 
 
+
     IEnumerator FlashLeftCoroutine()
     {
         leftFlashing = true;
@@ -121,13 +122,12 @@ public class UI : MonoBehaviour
             player.blindSpotRight = false;
         }
 
+        /*
         if (player.collisionDetected)
         {
-            if (collisionDetectionFlashing)
-            {
-                StartCoroutine(Flash(collisionDetectionFlashing, forwardCollisionDetection));
-            }
+            StartCoroutine(Flash(collisionDetectionFlashing, forwardCollisionDetection));
         }
+        */
 
     }
 }

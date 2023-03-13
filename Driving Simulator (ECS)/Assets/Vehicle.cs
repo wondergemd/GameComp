@@ -21,6 +21,7 @@ public class Vehicle : MonoBehaviour
     public float maxMotorTorque;
     public float maxBrakeTorque;
     public float maxSteeringAngle;
+    public bool  debugApplyBrake;
 
     private Rigidbody rb;
 
@@ -84,6 +85,12 @@ public class Vehicle : MonoBehaviour
             // Pivot steered wheels visually
             ApplyLocalPositionToVisuals(axleInfo.leftWheel, axleInfo.leftWheelMeshGameObject);
             ApplyLocalPositionToVisuals(axleInfo.rightWheel, axleInfo.rightWheelMeshGameObject);
+
+            if (debugApplyBrake)
+            {
+                axleInfo.leftWheel.brakeTorque = maxBrakeTorque;
+                axleInfo.rightWheel.brakeTorque = maxBrakeTorque;
+            }
         }
     }
 
@@ -129,5 +136,10 @@ public class Vehicle : MonoBehaviour
     public Quaternion GetRotation()
     {
         return rb != null ? rb.rotation : Quaternion.identity;
+    }
+
+    public float GetMass()
+    {
+        return rb.mass;
     }
 }

@@ -2,6 +2,7 @@ using UnityEngine;
 using UnityEngine.UI;
 using Utils;
 using System;
+using System.Collections;
 
 
 public class Player : MonoBehaviour
@@ -29,6 +30,7 @@ public class Player : MonoBehaviour
     public float sensorMult = 1.5f;
     public float holdTime = 2f;
     public float collisionDistanceRange = 5f;
+    public float minForwardCollisionDist = 5f;
 
     [Space(10)]
     [Header("Blind Spot Sensors")]
@@ -48,11 +50,18 @@ public class Player : MonoBehaviour
     [Header("Audio")]
     public bool audioToggle = true;
 
+    [Space(10)]
+    [Header("Brake testing")]
+    public bool testBrakes = false;
+    public float brakeTime = 0f;
+    public float brakeDistance = 0f;
+    public float brakeSpeed = 0f;
+    public float estDist = 0f;
+    public float estTime = 0f;
+
     // Private Variables
-    private bool avoiding = false;
-    private float avoidTime;
     public bool collisionDetected = false;
-    private float collisionDetectedTime = 0.0f;
+    public float collisionDetectedTime = 0.0f;
     
 
 
@@ -99,6 +108,8 @@ public class Player : MonoBehaviour
     private void ForwardCollisionDetection()
     {
         float minDist = float.MaxValue;
+        float aiSpeed = 0f;
+        float aiAcc = 0f;
 
         // get playerVehicle Segement info
         (Waypoint, Waypoint, float) currSeg = pathFinder.GetSegmentVehicleOn(playerVehicle.GetPosition());
@@ -115,27 +126,35 @@ public class Player : MonoBehaviour
             if (currSeg.Item1 != null && !(currSeg.Item2 == aiSeg.endWp && currSeg.Item3 > ai.currSegXnorm))
             {
                 // get path distance (non-linear) between player vehicle and AI vehicle
-                float distBetweenNow = pathFinder.DistanceBetweenTwoPointsOnPath(playerVehicle.GetPosition(), aiVeh.GetPosition(), currSeg.Item2, aiSeg.endWp);
+                float distBetweenAI = pathFinder.DistanceBetweenTwoPointsOnPath(playerVehicle.GetPosition(), aiVeh.GetPosition(), currSeg.Item2, aiSeg.endWp);
 
-                minDist = Math.Min(minDist, distBetweenNow);
-
-                /*
-                // find closest distance player and AI vehicle will approach (distance = (player.velocity^2 - AI.velocity^2) / (2*player.acceleration))
-                float distBetweenFuture = (Mathf.Pow(ai.vehicle.GetSpeed(), 2f) - Mathf.Pow(playerVehicle.GetSpeed(), 2f)) / (2f * playerVehicle.GetAcceleration());
-
-                // activate emergency brakes if collision path detected within range
-                float distBetweenDiff = distBetweenNow - distBetweenFuture;
-                if (distBetweenDiff <= collisionDistanceRange && distBetweenDiff >= -collisionDistanceRange)
+                if (distBetweenAI < minDist)
                 {
-                    collisionDetected = true;
-                    collisionDetectedTime = Time.time;
+                    minDist = distBetweenAI;
+                    aiSpeed = ai.vehicle.GetSpeed();
+                    aiAcc = ai.vehicle.GetAcceleration();
                 }
-                */
             }
         }
-        Debug.Log(minDist);
-    }
 
+        float t = TimeToStop();
+
+        float aiDistTraveledInTimeToBrake = (aiSpeed * t) + (0.5f * aiAcc * (Mathf.Pow(t, 2f)));
+
+        float DistBetweenWithBraking = (aiDistTraveledInTimeToBrake + minDist) - DistanceToStop();
+
+
+
+        if (DistBetweenWithBraking <= minForwardCollisionDist)
+        {
+            collisionDetected = true;
+            collisionDetectedTime = Time.time;
+            Debug.Log("COLLISION DETECTED EMERGENCY BRAKING");
+        }
+
+
+
+    }
 
 
     /*
@@ -177,6 +196,42 @@ else
             playerVehicle.Throttle = 0;
             playerVehicle.Brake = 1;
         }
+    }
+
+
+    private float TimeToStop()
+    {
+        float maxDeceleration = playerVehicle.maxBrakeTorque / (playerVehicle.GetMass() / 10);
+        return playerVehicle.GetSpeed() / maxDeceleration;
+    }
+
+    private float DistanceToStop()
+    {
+        float t = TimeToStop();
+        float maxDeceleration = playerVehicle.maxBrakeTorque / (playerVehicle.GetMass() / 10);
+        return (playerVehicle.GetSpeed() * t) + ((0.5f) * -maxDeceleration * (Mathf.Pow(t, 2f)));
+    }
+
+
+    private void TestBrakes()
+    {
+        float initialTime = Time.time;
+        Vector3 initialDist = playerVehicle.GetPosition();
+        brakeSpeed = playerVehicle.GetSpeed();
+
+        while (playerVehicle.GetSpeed() != 0)
+        {
+            playerVehicle.Throttle = 0;
+            playerVehicle.Brake = 1;
+        }
+
+        float finalTime = Time.time;
+        Vector3 finalDist = playerVehicle.GetPosition();
+
+        brakeDistance = Vector3.Distance(initialDist, finalDist);
+        brakeTime = finalTime - initialTime;
+        testBrakes = false;
+
     }
 
 
@@ -232,6 +287,38 @@ else
     }
 
 
+    IEnumerator BrakeTesting()
+    {
+        brakeTime = 0f;
+        brakeDistance = 0f;
+        testBrakes = true;
+        float initialTime = Time.time;
+        Vector3 initialPos = playerVehicle.GetPosition();
+        brakeSpeed = playerVehicle.GetSpeed();
+
+        estTime = TimeToStop();
+        estDist = DistanceToStop();
+
+        yield return new WaitUntil(() => playerVehicle.GetSpeed() <= 0.1);
+
+        float finalTime = Time.time;
+        Vector3 finalPos = playerVehicle.GetPosition();
+
+        brakeTime = finalTime - initialTime;
+        brakeDistance = Vector3.Distance(initialPos, finalPos);
+
+        testBrakes = false;
+
+        //yield return null;
+    }
+
+    /*
+    public bool testBrakes = false;
+    public float brakeTime = 0f;
+    public float brakeDistance = 0f;
+    public float brakeSpeed = 0f;
+    */
+
     public void FixedUpdate()
     {
 
@@ -239,7 +326,6 @@ else
         float accbrakeInput = Input.GetAxis("Vertical");
         float steeringInput = Input.GetAxis("Horizontal");
         //Debug.Log("accbrakeinput = " + accbrakeInput);
-
 
 
         // Vehicle with user input
@@ -259,7 +345,15 @@ else
         ForwardCollisionDetection();
         EmergencyBraking();
 
-
+        if (Input.GetKeyDown(KeyCode.Space) && !testBrakes)
+        {
+            StartCoroutine(BrakeTesting());
+        }
+        if (testBrakes)
+        {
+            playerVehicle.Throttle = 0;
+            playerVehicle.Brake = 1;
+        }
 
         // Debug Text Updater
         if (textUpdateTimer > 0.1f)
@@ -271,9 +365,9 @@ else
                 string debugStr = string.Format(
             "Throttle: {0:0.00}, Brake: {1:0.00}, Steering: {2:0.00}\n" +
             "Speed: {3:0.00} m/s, Long Acc: {4:0.0} m/s^2, Lat Acc: {5:0.0} m/s^2\n" +
-            "Avoiding: {6:0}\n" +
-            "Seg1: {7: 0}, Seg2: {8: 0}, Seg%: {9: 0.0}",
-            playerVehicle.Throttle, playerVehicle.Brake, playerVehicle.Steering, playerVehicle.GetSpeed(), longAcc, latAcc, avoiding, currSeg.Item1, currSeg.Item2, currSeg.Item3
+            "Time to Stop: {6: 0.00}\n" +
+            "Dist to Stop: {7: 0.00}",
+            playerVehicle.Throttle, playerVehicle.Brake, playerVehicle.Steering, playerVehicle.GetSpeed(), longAcc, latAcc, TimeToStop(), DistanceToStop()
             );
 
             DebugText.text = debugStr;
