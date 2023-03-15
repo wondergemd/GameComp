@@ -102,6 +102,77 @@ public class PathFinder : MonoBehaviour
         return longest;
     }
 
+    public float DistanceToVehicleOnPathTrajectory(Vehicle aVeh, Vehicle bVeh, Waypoint aWp, Waypoint bWp)
+    {
+        Vector3 a = aVeh.GetPosition();
+        Vector3 b = bVeh.GetPosition();
+
+        if (aWp == bWp) return (a - b).magnitude;
+
+        List<Waypoint> path = CalculatePath(aWp, bWp);
+        if (path == null) return float.MaxValue;
+
+        float dist = 0;
+
+        for (int i = 0; i < path.Count; i++)
+        {
+            Waypoint currWp = path[i];
+            Waypoint lastWp = null;
+            Waypoint nextWp = null;
+            if (i > 0) lastWp = path[i - 1];
+            if (i < path.Count - 1) nextWp = path[i + 1];
+
+            if (lastWp != null)
+            {
+                // If we are at a junction, check if the calculated path to vehicle
+                // is in line with our trajectory.
+                // Basically we assume we go "straight" over junctions.
+                // If the path takes a left or right turn, then we assume our vehicle
+                // won't travel in that direction and just return float.MaxValue.
+                if (currWp.neighbors.Count > 1 && nextWp != null)
+                {
+                    Vector3 desiredDir = (currWp.GetPosition() - lastWp.GetPosition()).normalized;
+
+                    Waypoint desiredNextWp = null;
+                    float maxDot = 0f;
+
+                    foreach (Waypoint neighWp in currWp.neighbors)
+                    {
+                        Vector3 neighDir = (neighWp.GetPosition() - currWp.GetPosition()).normalized;
+                        float dotProd = Vector3.Dot(desiredDir, neighDir);
+
+                        if (dotProd > maxDot)
+                        {
+                            desiredNextWp = neighWp;
+                            maxDot = dotProd;
+                        }
+                    }
+
+                    if (desiredNextWp != nextWp)
+                    {
+                        return float.MaxValue;
+                    }
+                }
+                
+                dist += (currWp.GetPosition() - lastWp.GetPosition()).magnitude;
+            }
+        }
+
+        Vector3 a1WpPos = path[0].GetPosition();
+        Vector3 a2WpPos = path[1].GetPosition();
+
+        Vector3 b1WpPos = path[path.Count - 2].GetPosition();
+        Vector3 b2WpPos = path[path.Count - 1].GetPosition();
+
+        float aXnorm = -MathLib.InverseLerp(a, a1WpPos, a2WpPos);
+        float bXnorm = -MathLib.InverseLerp(b, b2WpPos, b1WpPos);
+
+        float aDist = (a2WpPos - a1WpPos).magnitude * aXnorm;
+        float bDist = (b2WpPos - b1WpPos).magnitude * bXnorm;
+
+        return dist + aDist + bDist;
+    }
+
     // Waypoints should be close to respective points
     public float DistanceBetweenTwoPointsOnPath(Vector3 a, Vector3 b, Waypoint aWp, Waypoint bWp)
     {

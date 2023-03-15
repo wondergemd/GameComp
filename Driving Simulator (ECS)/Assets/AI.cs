@@ -248,7 +248,7 @@ public class AI : MonoBehaviour
                     }
                 }
 
-                float distBetween = pathFinder.DistanceBetweenTwoPointsOnPath(this.vehPos, ai.vehPos, currSeg.endWp, otherCurrSeg.endWp) - 2f * vehSpeed - 5f;
+                float distBetween = pathFinder.DistanceToVehicleOnPathTrajectory(this.vehicle, ai.vehicle, currSeg.endWp, otherCurrSeg.endWp) - 2f * vehSpeed - 5f;
                 this.tempdistBetween = Mathf.Min(distBetween, tempdistBetween);
 
                 // vf^2 = vi^2 + 2 * a * d
