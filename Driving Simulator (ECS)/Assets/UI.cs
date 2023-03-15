@@ -3,31 +3,50 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 
+public class Flashing
+{
+    private bool _left = false;
+    public bool left = false;
+    {
+        get { return _left; }
+        set { _left = left; }
+    }
+   
+    private bool _left = false;
+    public bool left = false;
+    {
+        get { return _left; }
+        set { _left = left; }
+    }
+}
+
+
 public class UI : MonoBehaviour
 {
+    public Flashing Flashing;
 
     public Vehicle vehicle;
     public Player player;
-
-    public Text SpeedText;
-
-    private float textUpdateTimer = 0f;
 
     public Image speedometerArrow;
     public Image blindSpotIndicatorLeft;
     public Image blindSpotIndicatorRight;
     public Image forwardCollisionDetection;
+
+    public Text SpeedText;
+
+    private float textUpdateTimer = 0f;
+
     public float flashInterval = 0.2f;
     public float flashDuration = 2.0f;
+
+    public Color baseColor;
     public Color flashColor;
+
     public bool debug = false;
 
     private bool leftFlashing = false;
     private bool rightFlashing = false;
-    private bool collisionDetectionFlashing = false;
-
-    private Color originalColor;
-
 
 
     IEnumerator FlashLeftCoroutine()
@@ -38,11 +57,12 @@ public class UI : MonoBehaviour
         {
             blindSpotIndicatorLeft.color = flashColor;
             yield return new WaitForSeconds(flashInterval);
-            blindSpotIndicatorLeft.color = originalColor;
+            blindSpotIndicatorLeft.color = baseColor;
             yield return new WaitForSeconds(flashInterval);
         }
         leftFlashing = false;
     }
+
 
     IEnumerator FlashRightCoroutine()
     {
@@ -52,13 +72,15 @@ public class UI : MonoBehaviour
         {
             blindSpotIndicatorRight.color = flashColor;
             yield return new WaitForSeconds(flashInterval);
-            blindSpotIndicatorRight.color = originalColor;
+            blindSpotIndicatorRight.color = baseColor;
             yield return new WaitForSeconds(flashInterval);
         }
         rightFlashing = false;
     }
 
-    IEnumerator Flash(bool flashing, Image image)
+    // Utility function to flash individual UI image element
+    // currently not working because the function cannot pass by refference, meaning the bool
+    IEnumerator FlashElement(bool flashing, Image image)
     {
         flashing = true;
         float startTime = Time.time;
@@ -66,22 +88,52 @@ public class UI : MonoBehaviour
         {
             image.color = flashColor;
             yield return new WaitForSeconds(flashInterval);
-            image.color = originalColor;
+            image.color = baseColor;
             yield return new WaitForSeconds(flashInterval);
         }
         flashing = false;
     }
 
-    // Start is called before the first frame update
-    void Start()
+    private void BlindSpotIndicatorsMain()
     {
-        originalColor = blindSpotIndicatorLeft.color;
+        if (player.blindSpotLeft)
+        {
+            if (!Flashing.left)
+            {
+                StartCoroutine(FlashElement(Flashing.left, blindSpotIndicatorLeft));
+            }
+            player.blindSpotLeft = false;
+        }
+
+        if (player.blindSpotRight)
+        {
+            if (!Flashing.right)
+            {
+                StartCoroutine(FlashElement(Flashing.right, blindSpotIndicatorRight));
+            }
+            player.blindSpotRight = false;
+        }
     }
 
-    // Update is called once per frame
-    void Update()
-    {
 
+    // Rotates Speedometer
+    private void RotateSpeedometer()
+    {
+        // convert m/s to MPH
+        float mph = (player.playerVehicle.GetSpeed() * 2.237f);
+
+        // percentage of mph value to max speedometer value - 240 mph
+        float mphSpeedometer = mph / 240f;
+
+        // rotate speedometer UI element
+        speedometerArrow.transform.rotation = Quaternion.Euler(0, 0, -(mphSpeedometer * 360f));
+    }
+
+
+    // used to display speed converted to MPH next to speedometer for debugging
+    // can probably be deleted
+    private void debugSpeed()
+    {
         //SPEED DEBUG TEXT
         if (debug)
         {
@@ -96,38 +148,25 @@ public class UI : MonoBehaviour
             }
 
             textUpdateTimer += Time.fixedDeltaTime;
-        } else
+        }
+        else
         {
             SpeedText.enabled = false;
         }
+    }
 
 
-        speedometerArrow.transform.rotation = Quaternion.Euler(0, 0, -(((player.playerVehicle.GetSpeed() * 2.237f)/240f)*360f));
+    // Start is called before the first frame update
+    void Start()
+    {
 
-        if (player.blindSpotLeft)
-        {
-            if (!leftFlashing)
-            {
-                StartCoroutine(FlashLeftCoroutine());
-            }
-            player.blindSpotLeft = false;
-        }
+    }
 
-        if (player.blindSpotRight)
-        {
-            if (!rightFlashing)
-            {
-                StartCoroutine(FlashRightCoroutine());
-            }
-            player.blindSpotRight = false;
-        }
+    // Update is called once per frame
+    void Update()
+    {
+        RotateSpeedometer();
 
-        /*
-        if (player.collisionDetected)
-        {
-            StartCoroutine(Flash(collisionDetectionFlashing, forwardCollisionDetection));
-        }
-        */
-
+        //BlindSpotIndicatorsMain();
     }
 }

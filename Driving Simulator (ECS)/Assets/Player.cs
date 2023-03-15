@@ -7,7 +7,7 @@ using System.Collections;
 
 public class Player : MonoBehaviour
 {
-    // The controlled vehicle
+    // Connected scripts/game Objects
     public Vehicle playerVehicle;
     public Text DebugText;
     public AudioSource audioSource;
@@ -17,20 +17,16 @@ public class Player : MonoBehaviour
 
     private float textUpdateTimer = 0f;
     private MathLib.ExponentialSmoother accLongSmoother, accLatSmoother;
+    private float longAcc, latAcc;
+    private float accbrakeInput, steeringInput;
 
-
-    // Variables used for sensors/ Collision Avoidance
 
     [Header("Forward Collision Sensor")]
-    public float frontSensorLength = 8f;
-    public Vector3 frontSensorPos = new Vector3(2.25f, .5f, 1f);
-    public float frontSensorAngle = 30;
-    public float frontSensorMaxAngle = 45;
-    public float numSensors = 5;
-    public float sensorMult = 1.5f;
     public float holdTime = 2f;
-    public float collisionDistanceRange = 5f;
     public float minForwardCollisionDist = 5f;
+    public bool collisionDetected = false;
+    public float collisionDetectedTime = 0.0f;
+
 
     [Space(10)]
     [Header("Blind Spot Sensors")]
@@ -50,6 +46,8 @@ public class Player : MonoBehaviour
     [Header("Audio")]
     public bool audioToggle = true;
 
+
+    // Debug variables, used in BrakeTesting and BrakeTestingMain only
     [Space(10)]
     [Header("Brake testing")]
     public bool testBrakes = false;
@@ -59,17 +57,8 @@ public class Player : MonoBehaviour
     public float estDist = 0f;
     public float estTime = 0f;
 
-    // Private Variables
-    public bool collisionDetected = false;
-    public float collisionDetectedTime = 0.0f;
-    
 
-
-    private void DetectCollision(Vehicle otherVehicle)
-    {
-
-    }
-
+    // Utility function for a single Raycast sensor.
     private bool Sensor(Vector3 sensorPos, float sensorAngle, float sensorLength)
     {
         RaycastHit hit;
@@ -85,6 +74,9 @@ public class Player : MonoBehaviour
         }
     }
 
+
+    // Function not needed, as using AI pathing system for collision detection instead. Keeping as the for loop may be useful for adding other raycast sensors in the future.
+/*
     private void ForwardCollisionDetectionSensors()
     {
         // Sensor starts at middle of car, additions set sensors at front of car and account for changes in direction
@@ -104,7 +96,10 @@ public class Player : MonoBehaviour
         }
 
     }
+*/
 
+
+    // Forward Collision Detection based on non-linear AI paths and linear physics equation
     private void ForwardCollisionDetection()
     {
         float minDist = float.MaxValue;
@@ -121,6 +116,7 @@ public class Player : MonoBehaviour
             AI ai = trafficGenerator.activeAIs[i];
             Vehicle aiVeh = ai.vehicle;
 
+            // get AI segment info
             AI.SegmentData aiSeg = ai.plan[Mathf.Min(ai.currSegIdx, ai.plan.Count - 1)];
 
             if (currSeg.Item1 != null && !(currSeg.Item2 == aiSeg.endWp && currSeg.Item3 > ai.currSegXnorm))
@@ -128,6 +124,7 @@ public class Player : MonoBehaviour
                 // get path distance (non-linear) between player vehicle and AI vehicle
                 float distBetweenAI = pathFinder.DistanceBetweenTwoPointsOnPath(playerVehicle.GetPosition(), aiVeh.GetPosition(), currSeg.Item2, aiSeg.endWp);
 
+                // if AI vehicle is closest to player vehicle in loop so far
                 if (distBetweenAI < minDist)
                 {
                     minDist = distBetweenAI;
@@ -139,50 +136,27 @@ public class Player : MonoBehaviour
 
         float t = TimeToStop();
 
+        // distance AI travels in time it takes player vehicle to stop | d = v0*t + 0.5*a*t^2
         float aiDistTraveledInTimeToBrake = (aiSpeed * t) + (0.5f * aiAcc * (Mathf.Pow(t, 2f)));
 
+        // distance between player vehicle and AI vehicle if player vehicle applies full brakes now. 
         float DistBetweenWithBraking = (aiDistTraveledInTimeToBrake + minDist) - DistanceToStop();
 
-
-
+        // if estimated distance between player vehicle and AI vehicle after player vehicle theoretically applies
+        // full brakes is less than minForwardCollisionDist, then apply emergency braking
+        // records time to determine how long to hold emergency braking
+        // Should probably update emergency braking to gradual system and make coroutine instead
         if (DistBetweenWithBraking <= minForwardCollisionDist)
         {
             collisionDetected = true;
             collisionDetectedTime = Time.time;
-            Debug.Log("COLLISION DETECTED EMERGENCY BRAKING");
+            //Debug.Log("COLLISION DETECTED EMERGENCY BRAKING");
         }
-
-
-
     }
 
 
-    /*
-// Center Sensor
-if (Physics.Raycast(sensorPos, Vehicle.transform.forward, out hit, frontSensorLength))
-{
-    Debug.DrawLine(sensorPos, hit.point, Color.green);
-    avoiding = true;
-    avoidTime = Time.time;
-}
-else
-{
-    Debug.DrawRay(sensorPos, Vehicle.transform.forward * frontSensorLength, Color.red);
-}
-
-// Left Sensor
-blindSpotSensorPos -= (Vehicle.transform.right * backSensorPos.z) * 2;
-if (Physics.Raycast(blindSpotSensorPos, (Quaternion.AngleAxis(frontSensorAngle, Vehicle.transform.up) * -Vehicle.transform.forward), out hit, frontSensorLength))
-{
-    Debug.DrawLine(blindSpotSensorPos, hit.point, Color.green);
-    blindSpotLeft = true;
-}
-else
-{
-    Debug.DrawRay(blindSpotSensorPos, (Quaternion.AngleAxis(frontSensorAngle, Vehicle.transform.up) * -Vehicle.transform.forward) * blindSpotLength, Color.red);
-}
-*/
-
+    // Applies full emergency braking for period of time equal to holdTime
+    // Need to update to gradual braking system and make coroutine
     private void EmergencyBraking()
     {
         // Holds emergency braking for a set amount of time to override player input and allow vehicle to actually brake
@@ -199,12 +173,15 @@ else
     }
 
 
+    // Estimates time to stop based on the vehicle's braking torque and mass, and current speed.
     private float TimeToStop()
     {
         float maxDeceleration = playerVehicle.maxBrakeTorque / (playerVehicle.GetMass() / 10);
         return playerVehicle.GetSpeed() / maxDeceleration;
     }
+    
 
+    // Estimate distance to stop based on the vehicle's braking torque and mass, and current speed.
     private float DistanceToStop()
     {
         float t = TimeToStop();
@@ -213,37 +190,7 @@ else
     }
 
 
-    private void TestBrakes()
-    {
-        float initialTime = Time.time;
-        Vector3 initialDist = playerVehicle.GetPosition();
-        brakeSpeed = playerVehicle.GetSpeed();
-
-        while (playerVehicle.GetSpeed() != 0)
-        {
-            playerVehicle.Throttle = 0;
-            playerVehicle.Brake = 1;
-        }
-
-        float finalTime = Time.time;
-        Vector3 finalDist = playerVehicle.GetPosition();
-
-        brakeDistance = Vector3.Distance(initialDist, finalDist);
-        brakeTime = finalTime - initialTime;
-        testBrakes = false;
-
-    }
-
-
-    // Start is called before the first frame update
-    void Start()
-    {
-        accLongSmoother = new MathLib.ExponentialSmoother(30, 0.0f, Time.fixedDeltaTime);
-        accLatSmoother = new MathLib.ExponentialSmoother(30, 0.0f, Time.fixedDeltaTime);
-    }
-
-
-
+    // Blind spot indicators for passing vehicles in same direction
     private void BlindSpotIndicator()
     {
         RaycastHit hit;
@@ -275,9 +222,10 @@ else
         {
             Debug.DrawRay(blindSpotSensorPos, (Quaternion.AngleAxis(blindSpotAngle, playerVehicle.transform.up) * -playerVehicle.transform.forward) * blindSpotLength, Color.red);
         }
-        
+
 
     }
+
 
     // Rotates steering wheel in direction of steering input
     private void SteeringWheelTurning(float steeringInput)
@@ -287,6 +235,9 @@ else
     }
 
 
+    // Coroutine used to test the equation used in the Forward Collision Function, estimating braking time and distance using the vehicle's current speed and acceleration
+    // updates the brakeTime and brakeDistance variables with the actual time and distance it took to stop the vehicle
+    // compare to estTime and estDist variables to see how accurate the equation is
     IEnumerator BrakeTesting()
     {
         brakeTime = 0f;
@@ -308,42 +259,14 @@ else
         brakeDistance = Vector3.Distance(initialPos, finalPos);
 
         testBrakes = false;
-
-        //yield return null;
     }
 
-    /*
-    public bool testBrakes = false;
-    public float brakeTime = 0f;
-    public float brakeDistance = 0f;
-    public float brakeSpeed = 0f;
-    */
 
-    public void FixedUpdate()
+    // Debug testing to ensure the equation estimating vehicle braking time/distance 
+    // was correct. Can be added into script update function, activates brake testing with spacebar
+    // Uses BrakeTesting coroutine. 
+    private void BrakeTestingMain()
     {
-
-        // Positive for accelerating and negative for braking
-        float accbrakeInput = Input.GetAxis("Vertical");
-        float steeringInput = Input.GetAxis("Horizontal");
-        //Debug.Log("accbrakeinput = " + accbrakeInput);
-
-
-        // Vehicle with user input
-        playerVehicle.Throttle = accbrakeInput;
-        playerVehicle.Brake = -accbrakeInput;
-        playerVehicle.Steering = steeringInput;
-
-        Vector3 localAcc = Quaternion.Inverse(playerVehicle.GetRotation()) * playerVehicle.GetAccelerationVec();
-
-        float longAcc = accLongSmoother.Get(localAcc.z);
-        float latAcc = accLatSmoother.Get(localAcc.x);
-
-
-        // Detect object & override AI pathing if detected
-        SteeringWheelTurning(steeringInput);
-        BlindSpotIndicator();
-        ForwardCollisionDetection();
-        EmergencyBraking();
 
         if (Input.GetKeyDown(KeyCode.Space) && !testBrakes)
         {
@@ -354,7 +277,30 @@ else
             playerVehicle.Throttle = 0;
             playerVehicle.Brake = 1;
         }
+    }
 
+
+    private void UserInput()
+    {
+        // Positive for accelerating and negative for braking
+        accbrakeInput = Input.GetAxis("Vertical");
+        steeringInput = Input.GetAxis("Horizontal");
+        //Debug.Log("accbrakeinput = " + accbrakeInput);
+
+        // Vehicle with user input
+        playerVehicle.Throttle = accbrakeInput;
+        playerVehicle.Brake = -accbrakeInput;
+        playerVehicle.Steering = steeringInput;
+
+        Vector3 localAcc = Quaternion.Inverse(playerVehicle.GetRotation()) * playerVehicle.GetAccelerationVec();
+
+        longAcc = accLongSmoother.Get(localAcc.z);
+        latAcc = accLatSmoother.Get(localAcc.x);
+    }
+
+
+    private void DebugTextUpdater()
+    {
         // Debug Text Updater
         if (textUpdateTimer > 0.1f)
         {
@@ -362,18 +308,40 @@ else
 
             (Waypoint, Waypoint, float) currSeg = pathFinder.GetSegmentVehicleOn(playerVehicle.GetPosition());
 
-                string debugStr = string.Format(
-            "Throttle: {0:0.00}, Brake: {1:0.00}, Steering: {2:0.00}\n" +
-            "Speed: {3:0.00} m/s, Long Acc: {4:0.0} m/s^2, Lat Acc: {5:0.0} m/s^2\n" +
-            "Time to Stop: {6: 0.00}\n" +
-            "Dist to Stop: {7: 0.00}",
-            playerVehicle.Throttle, playerVehicle.Brake, playerVehicle.Steering, playerVehicle.GetSpeed(), longAcc, latAcc, TimeToStop(), DistanceToStop()
-            );
+            string debugStr = string.Format(
+        "Throttle: {0:0.00}, Brake: {1:0.00}, Steering: {2:0.00}\n" +
+        "Speed: {3:0.00} m/s, Long Acc: {4:0.0} m/s^2, Lat Acc: {5:0.0} m/s^2\n" +
+        "Time to Stop: {6: 0.00}\n" +
+        "Dist to Stop: {7: 0.00}",
+        playerVehicle.Throttle, playerVehicle.Brake, playerVehicle.Steering, playerVehicle.GetSpeed(), longAcc, latAcc, TimeToStop(), DistanceToStop()
+        );
 
             DebugText.text = debugStr;
         }
         textUpdateTimer += Time.fixedDeltaTime;
+    }
 
 
+    // Start is called before the first frame update
+    void Start()
+    {
+        accLongSmoother = new MathLib.ExponentialSmoother(30, 0.0f, Time.fixedDeltaTime);
+        accLatSmoother = new MathLib.ExponentialSmoother(30, 0.0f, Time.fixedDeltaTime);
+    }
+
+
+    public void FixedUpdate()
+    {
+
+        UserInput();
+
+        SteeringWheelTurning(steeringInput);
+
+        BlindSpotIndicator();
+
+        ForwardCollisionDetection();
+        EmergencyBraking();
+
+        DebugTextUpdater();
     }
 }
