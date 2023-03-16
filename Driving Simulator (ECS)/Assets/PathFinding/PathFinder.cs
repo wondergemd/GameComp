@@ -100,16 +100,18 @@ public class PathFinder : MonoBehaviour
 
     private int _GreatestNumWPsPath(Waypoint startWp, HashSet<Waypoint> wps)
     {
+        wps.Add(startWp);
+
         int longest = 1;
         foreach (Waypoint wp in startWp.neighbors)
         {
             if (!wps.Contains(wp))
             {
-                wps.Add(wp);
                 longest = Mathf.Max(_GreatestNumWPsPath(wp, wps) + 1, longest);
-                wps.Remove(wp);
             }
         }
+        wps.Remove(startWp);
+
         return longest;
     }
 
