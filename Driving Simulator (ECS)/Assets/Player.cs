@@ -3,6 +3,7 @@ using UnityEngine.UI;
 using Utils;
 using System;
 using System.Collections;
+using System.Collections.Generic;
 
 
 public class Player : MonoBehaviour
@@ -31,6 +32,7 @@ public class Player : MonoBehaviour
     [Space(10)]
     [Header("Blind Spot Sensors")]
     public Vector3 backSensorPos = new Vector3(-1f, 1f, 0.75f);
+    public int blindSpotNumSensors = 5;
     public float blindSpotAngle = 20;
     public float blindSpotLength = 5f;
     public bool blindSpotLeft = false;
@@ -59,19 +61,50 @@ public class Player : MonoBehaviour
 
 
     // Utility function for a single Raycast sensor.
-    private bool Sensor(Vector3 sensorPos, float sensorAngle, float sensorLength)
+    private RaycastHit Sensor(Vector3 sensorPos, float sensorAngle, float sensorLength)
     {
         RaycastHit hit;
         if (Physics.Raycast(sensorPos, (Quaternion.AngleAxis(sensorAngle, playerVehicle.transform.up) * playerVehicle.transform.forward), out hit, sensorLength))
         {
             Debug.DrawLine(sensorPos, hit.point, Color.green);
-            return true;
+            return hit;
         }
         else
         {
             Debug.DrawRay(sensorPos, (Quaternion.AngleAxis(sensorAngle, playerVehicle.transform.up) * playerVehicle.transform.forward) * sensorLength, Color.red);
-            return false;
+            return hit;
         }
+    }
+
+    private List<RaycastHit> SensorArray(int numSensors, float maxAngle, float sensorLength, Vector3 sensorOffset)
+    {
+        List<RaycastHit> hits = new List<RaycastHit>();
+
+        // Sensor starts at middle of car, additions set sensors at front of car and account for changes in direction
+        Vector3 sensorPos = playerVehicle.transform.position;
+        sensorPos += (playerVehicle.transform.forward * sensorOffset.x);
+        sensorPos += (playerVehicle.transform.up * sensorOffset.y);
+
+        float angleSubtraction = (360f - (maxAngle * 2)) / (numSensors - 1);
+        float tempSensorAngle = maxAngle;
+
+        sensorPos += (playerVehicle.transform.right * sensorOffset.z);
+        for (int i = 0; i < numSensors; i++)
+        {
+            hits.Add(Sensor(sensorPos, tempSensorAngle, sensorLength));
+            tempSensorAngle -= angleSubtraction;
+        }
+
+
+        sensorPos -= (playerVehicle.transform.right * (sensorOffset.z * 2));
+        tempSensorAngle = maxAngle;
+        for (int i = 0; i < numSensors; i++)
+        {
+            hits.Add(Sensor(sensorPos, -tempSensorAngle, sensorLength));
+            tempSensorAngle -= angleSubtraction;
+        }
+
+        return hits;
     }
 
 
@@ -106,6 +139,9 @@ public class Player : MonoBehaviour
         float aiSpeed = 0f;
         float aiAcc = 0f;
 
+
+        // 1. Find closest AI vehicle to player vehicle which share non-linear AI paths
+
         // get playerVehicle Segement info
         (Waypoint, Waypoint, float) currSeg = pathFinder.GetSegmentVehicleOn(playerVehicle.GetPosition());
 
@@ -134,13 +170,15 @@ public class Player : MonoBehaviour
             }
         }
 
-        float t = TimeToStop();
+        // 2. Determine if braking needs to be applied
+
+        float t = TimeToMatchSpeed(aiSpeed);
 
         // distance AI travels in time it takes player vehicle to stop | d = v0*t + 0.5*a*t^2
         float aiDistTraveledInTimeToBrake = (aiSpeed * t) + (0.5f * aiAcc * (Mathf.Pow(t, 2f)));
 
         // distance between player vehicle and AI vehicle if player vehicle applies full brakes now. 
-        float DistBetweenWithBraking = (aiDistTraveledInTimeToBrake + minDist) - DistanceToStop();
+        float DistBetweenWithBraking = (aiDistTraveledInTimeToBrake + minDist) - DistanceToMatchSpeed(aiSpeed);
 
         // if estimated distance between player vehicle and AI vehicle after player vehicle theoretically applies
         // full brakes is less than minForwardCollisionDist, then apply emergency braking
@@ -173,6 +211,29 @@ public class Player : MonoBehaviour
     }
 
 
+    private float DistanceToMatchSpeed(float finalSpeed)
+    {
+        if (finalSpeed > playerVehicle.GetSpeed())
+        {
+            return 0f;
+        }
+        float t = TimeToMatchSpeed(finalSpeed);
+        float maxDeceleration = playerVehicle.maxBrakeTorque / (playerVehicle.GetMass() / 10);
+        return (playerVehicle.GetSpeed() * t) + ((0.5f) * -maxDeceleration * (Mathf.Pow(t, 2f)));
+    }
+
+
+    private float TimeToMatchSpeed(float finalSpeed)
+    {
+        if (finalSpeed > playerVehicle.GetSpeed())
+        {
+            return 0f;
+        }
+        float maxDeceleration = playerVehicle.maxBrakeTorque / (playerVehicle.GetMass() / 10);
+        return (finalSpeed - playerVehicle.GetSpeed()) / -maxDeceleration;
+    }
+
+
     // Estimates time to stop based on the vehicle's braking torque and mass, and current speed.
     private float TimeToStop()
     {
@@ -190,9 +251,27 @@ public class Player : MonoBehaviour
     }
 
 
+
     // Blind spot indicators for passing vehicles in same direction
     private void BlindSpotIndicator()
     {
+        List<RaycastHit> hits = new List<RaycastHit>();
+
+        //private List<RaycastHit> SensorArray(int numSensors, float maxAngle, float sensorLength, Vector3 sensorOffset)
+        hits = SensorArray(blindSpotNumSensors, blindSpotAngle, blindSpotLength, backSensorPos);
+
+        foreach (RaycastHit hit in hits)
+        {
+            if (hit.collider != null)
+            {
+                if (hit.collider.tag == "vehicle")
+                {
+
+                }
+            }
+        }
+
+        /*
         RaycastHit hit;
         // Sensor starts at middle of car, additions set sensors at front of car and account for changes in direction
         Vector3 blindSpotSensorPos = playerVehicle.transform.position;
@@ -200,6 +279,8 @@ public class Player : MonoBehaviour
         blindSpotSensorPos += (playerVehicle.transform.up * backSensorPos.y);
         blindSpotSensorPos += (playerVehicle.transform.right * backSensorPos.z);
 
+
+        
         // Right Sensor
         if (Physics.Raycast(blindSpotSensorPos, (Quaternion.AngleAxis(-blindSpotAngle, playerVehicle.transform.up) * -playerVehicle.transform.forward), out hit, blindSpotLength))
         {
@@ -222,8 +303,7 @@ public class Player : MonoBehaviour
         {
             Debug.DrawRay(blindSpotSensorPos, (Quaternion.AngleAxis(blindSpotAngle, playerVehicle.transform.up) * -playerVehicle.transform.forward) * blindSpotLength, Color.red);
         }
-
-
+        */
     }
 
 
@@ -343,5 +423,7 @@ public class Player : MonoBehaviour
         EmergencyBraking();
 
         DebugTextUpdater();
+
+        //Debug.Log(DistanceToMatchSpeed(30f));
     }
 }

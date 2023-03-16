@@ -31,6 +31,7 @@ public class UI : MonoBehaviour
 
     public bool leftFlashing = false;
     public bool rightFlashing = false;
+    public bool forwardCollisionFlashing = false;
 
 
     IEnumerator FlashLeftCoroutine()
@@ -62,8 +63,25 @@ public class UI : MonoBehaviour
         rightFlashing = false;
     }
 
+
+    IEnumerator FlashForwardCollisionCoroutine()
+    {
+        forwardCollisionFlashing = true;
+        float startTime = Time.time;
+        while (Time.time - startTime < flashDuration)
+        {
+            forwardCollisionDetection.color = flashColor;
+            yield return new WaitForSeconds(flashInterval);
+            forwardCollisionDetection.color = baseColor;
+            yield return new WaitForSeconds(flashInterval);
+        }
+        forwardCollisionFlashing = false;
+    }
+
+
     // Utility function to flash individual UI image element
-    // currently not working because the function cannot pass by refference, meaning the bool
+    // currently not working because the function cannot pass by reference, meaning function 
+    // will repeat every update cycle since the bool value is not being updated in the public scope
     IEnumerator FlashElement(bool flashing, Image image)
     {
         flashing = true;
@@ -79,6 +97,29 @@ public class UI : MonoBehaviour
     }
 
 
+    private void BlindSpotIndicatorsMain()
+    {
+        // LEFT BLIND SPOT INDICATOR
+        if (player.blindSpotLeft)
+        {
+            if (!leftFlashing)
+            {
+                StartCoroutine(FlashLeftCoroutine());
+            }
+            player.blindSpotRight = false;
+        }
+
+        // LEFT BLIND SPOT INDICATOR
+        if (player.blindSpotRight)
+        {
+            if (!rightFlashing)
+            {
+                StartCoroutine(FlashRightCoroutine());
+            }
+            player.blindSpotRight = false;
+        }
+
+    }
 
 
     // Rotates Speedometer
@@ -132,6 +173,6 @@ public class UI : MonoBehaviour
     {
         RotateSpeedometer();
 
-        //BlindSpotIndicatorsMain();
+        BlindSpotIndicatorsMain();
     }
 }
