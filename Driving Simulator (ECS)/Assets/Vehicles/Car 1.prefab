@@ -14,7 +14,7 @@ GameObject:
   - component: {fileID: 9099434543009328055}
   m_Layer: 0
   m_Name: Car 1
-  m_TagString: Untagged
+  m_TagString: vehicle
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -81,6 +81,7 @@ MonoBehaviour:
   maxMotorTorque: 750
   maxBrakeTorque: 1000
   maxSteeringAngle: 30
+  debugApplyBrake: 0
 --- !u!114 &9099434543009328055
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -94,15 +95,14 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   debugDrawer: {fileID: 0}
-  sensorLength: 8
-  frontSensorPos: {x: 2.25, y: 0.5, z: 0}
-  sideSensorPos: {x: 0.5, y: 0.5, z: 0.75}
-  frontSensorAngle: 30
-  sensorSidePositions: 0.75
-  avoiding: 0
-  avoidMult: 0
-  turnSpeed: 1
-  stopToggle: 0
+  pathFinder: {fileID: 0}
+  trafficGenerator: {fileID: 0}
+  vehicle: {fileID: 0}
+  playerVehicle: {fileID: 0}
+  maxComfortAcc: 3
+  currSegIdx: 0
+  currSegXnorm: 0
+  debugPaths: 0
 --- !u!1 &9099434543120775812
 GameObject:
   m_ObjectHideFlags: 0

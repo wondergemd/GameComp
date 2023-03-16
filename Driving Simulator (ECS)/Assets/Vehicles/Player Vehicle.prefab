@@ -279,6 +279,7 @@ MonoBehaviour:
   maxMotorTorque: 750
   maxBrakeTorque: 1000
   maxSteeringAngle: 30
+  debugApplyBrake: 0
 --- !u!114 &-8928680637980306181
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -291,23 +292,30 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 40b95067dc35505418b26f974f5f3814, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  Vehicle: {fileID: 9099434543009328054}
+  playerVehicle: {fileID: 0}
   DebugText: {fileID: 0}
-  SteeringWheel: {fileID: 9099434544467322209}
   audioSource: {fileID: -354161189025927976}
-  sensorLength: 8
-  frontSensorPos: {x: 2.25, y: 0.5, z: 0}
-  frontSensorAngle: 30
-  sensorSidePositions: 0.75
-  sensorMult: 0.1
+  SteeringWheel: {fileID: 9099434544467322209}
+  pathFinder: {fileID: 0}
+  trafficGenerator: {fileID: 0}
   holdTime: 5
-  backSensorPos: {x: -1, y: 1, z: 0.75}
-  blindSpotAngle: 20
+  minForwardCollisionDist: 5
+  collisionDetected: 0
+  collisionDetectedTime: 0
+  backSensorPos: {x: -1, y: 0.8, z: 0.75}
+  blindSpotNumSensors: 5
+  blindSpotAngle: 160
   blindSpotLength: 5
   blindSpotLeft: 0
   blindSpotRight: 0
   maxSteeringWheelAngle: 180
   audioToggle: 1
+  testBrakes: 0
+  brakeTime: 0
+  brakeDistance: 0
+  brakeSpeed: 0
+  estDist: 0
+  estTime: 0
 --- !u!82 &-354161189025927976
 AudioSource:
   m_ObjectHideFlags: 0
