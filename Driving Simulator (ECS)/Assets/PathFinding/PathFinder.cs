@@ -98,6 +98,19 @@ public class PathFinder : MonoBehaviour
         }
     }
 
+    public bool IsWaypointOnPath(Waypoint wp, List<Waypoint> path)
+    {
+        foreach (Waypoint pathWp in path)
+        {
+            if (wp == pathWp)
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
     private int _GreatestNumWPsPath(Waypoint startWp, HashSet<Waypoint> wps)
     {
         wps.Add(startWp);

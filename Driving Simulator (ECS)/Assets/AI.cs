@@ -254,10 +254,12 @@ public class AI : MonoBehaviour
                     }
                 }
 
-                float straightDistBetween = (vehPos - ai.vehPos).sqrMagnitude;
-                if (straightDistBetween > vehSpeed * vehSpeed / (2f * maxComfortAcc * 0.5f)) continue;
+                float straightDistBetweenSqr = (vehPos - ai.vehPos).sqrMagnitude - (2f * vehSpeed) * (2f * vehSpeed) - 5 * 5;
+                float brakingDistanceSqr = vehSpeed * vehSpeed / (2f * maxComfortAcc * 0.5f);
+                brakingDistanceSqr *= brakingDistanceSqr;
+                if (straightDistBetweenSqr > brakingDistanceSqr) continue;
 
-                float distBetween = pathFinder.DistanceToVehicleOnPathTrajectory(this.vehicle, ai.vehicle, currSeg.endWp, otherCurrSeg.endWp) - 2f * vehSpeed - 5f;
+                float distBetween = pathFinder.DistanceBetweenTwoPointsOnPath(vehPos, ai.vehPos, currSeg.endWp, otherCurrSeg.endWp) - 2f * vehSpeed - 5f;
                 this.tempdistBetween = Mathf.Min(distBetween, tempdistBetween);
 
                 // vf^2 = vi^2 + 2 * a * d
@@ -274,6 +276,11 @@ public class AI : MonoBehaviour
         // Predict trajectory of player vehicle
         Vector3 pPos = playerVehicle.GetPosition();
         float pSpeed = playerVehicle.GetSpeed();
+
+        float straightDistBetweenSqr2 = (vehPos - pPos).sqrMagnitude - (2f * vehSpeed) * (2f * vehSpeed) - 5 * 5;
+        float brakingDistanceSqr2 = vehSpeed * vehSpeed / (2f * maxComfortAcc * 0.5f);
+        brakingDistanceSqr2 *= brakingDistanceSqr2;
+        if (straightDistBetweenSqr2 > brakingDistanceSqr2) return targetSpeed;
 
         /*
         float pTimeToStop = pSpeed / maxAcc;

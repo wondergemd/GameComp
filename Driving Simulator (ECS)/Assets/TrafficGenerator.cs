@@ -10,6 +10,8 @@ public class TrafficGenerator : MonoBehaviour
     
     public List<AI> activeAIs = new List<AI>();
 
+    private HashSet<Waypoint> wpsInUse = new HashSet<Waypoint>();
+
     // Start is called before the first frame update
     void Start()
     {
@@ -19,17 +21,36 @@ public class TrafficGenerator : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        // Add AI cars
+        AddAIVehicles();
+        RemoveAIVehicles();
+    }
+
+    private void AddAIVehicles()
+    {
         if (activeAIs.Count < MaxAICars)
         {
-            int numToSpawn = MaxAICars - activeAIs.Count;
+            wpsInUse.Clear();
+
+            // Get waypoints to spawn at (not in path of current AI vehicles)
+            for (int i = 0; i < activeAIs.Count; i++)
+            {
+                AI ai = activeAIs[i];
+                foreach (AI.SegmentData seg in ai.plan)
+                {
+                    wpsInUse.Add(seg.startWp);
+                }
+            }
 
             List<Waypoint> canidateWps = new List<Waypoint>(pathFinder.spawnWaypoints);
+            canidateWps.RemoveAll(wp => wpsInUse.Contains(wp));
+            if (canidateWps.Count == 0) return;
+
+            int numToSpawn = MaxAICars - activeAIs.Count;
 
             for (int i = 0; i < numToSpawn; i++)
             {
                 int randIdx = Random.Range(0, canidateWps.Count - 1);
-                
+
                 Waypoint spawnWp = canidateWps[randIdx];
                 Vector3 spawnPos = spawnWp.GetPosition();
                 (Waypoint, float) destWpDist = pathFinder.FurthestWaypoint(spawnWp);
@@ -49,7 +70,10 @@ public class TrafficGenerator : MonoBehaviour
                 canidateWps.RemoveAt(randIdx);
             }
         }
+    }
 
+    private void RemoveAIVehicles()
+    {
         // If an AI car has reached destination, despawn the car
         for (int i = 0; i < activeAIs.Count; i++)
         {
