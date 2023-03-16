@@ -18,6 +18,12 @@ public class PathFinder : MonoBehaviour
         // First update list of waypoints avaliable
         allWaypoints = GameObject.FindObjectsOfType<Waypoint>();
 
+        _dists = new float[allWaypoints.Length];
+        for (int i = 0; i < allWaypoints.Length; i++)
+        {
+            _dists[i] = float.MaxValue;
+        }
+
         // Calculate waypoint neighbours on one line by their names
         // gameobject name suffixed with "(0)" indicates start of a waypoint group
 
@@ -92,14 +98,97 @@ public class PathFinder : MonoBehaviour
         }
     }
 
-    private int GreatestNumWPsPath(Waypoint startWp)
+    private int _GreatestNumWPsPath(Waypoint startWp, HashSet<Waypoint> wps)
     {
+        wps.Add(startWp);
+
         int longest = 1;
         foreach (Waypoint wp in startWp.neighbors)
         {
-            longest = Mathf.Max(GreatestNumWPsPath(wp) + 1, longest);
+            if (!wps.Contains(wp))
+            {
+                longest = Mathf.Max(_GreatestNumWPsPath(wp, wps) + 1, longest);
+            }
         }
+        wps.Remove(startWp);
+
         return longest;
+    }
+
+    private int GreatestNumWPsPath(Waypoint startWp)
+    {
+        return _GreatestNumWPsPath(startWp, new HashSet<Waypoint>());
+    }
+
+    public float DistanceToVehicleOnPathTrajectory(Vehicle aVeh, Vehicle bVeh, Waypoint aWp, Waypoint bWp)
+    {
+        Vector3 a = aVeh.GetPosition();
+        Vector3 b = bVeh.GetPosition();
+
+        if (aWp == bWp) return (a - b).magnitude;
+
+        List<Waypoint> path = CalculatePath(aWp, bWp);
+        if (path == null) return float.MaxValue;
+
+        float dist = 0;
+
+        for (int i = 0; i < path.Count; i++)
+        {
+            Waypoint currWp = path[i];
+            Waypoint lastWp = null;
+            Waypoint nextWp = null;
+            if (i > 0) lastWp = path[i - 1];
+            if (i < path.Count - 1) nextWp = path[i + 1];
+
+            if (lastWp != null)
+            {
+                // If we are at a junction, check if the calculated path to vehicle
+                // is in line with our trajectory.
+                // Basically we assume we go "straight" over junctions.
+                // If the path takes a left or right turn, then we assume our vehicle
+                // won't travel in that direction and just return float.MaxValue.
+                if (currWp.neighbors.Count > 1 && nextWp != null)
+                {
+                    Vector3 desiredDir = (currWp.GetPosition() - lastWp.GetPosition()).normalized;
+
+                    Waypoint desiredNextWp = null;
+                    float maxDot = 0f;
+
+                    foreach (Waypoint neighWp in currWp.neighbors)
+                    {
+                        Vector3 neighDir = (neighWp.GetPosition() - currWp.GetPosition()).normalized;
+                        float dotProd = Vector3.Dot(desiredDir, neighDir);
+
+                        if (dotProd > maxDot)
+                        {
+                            desiredNextWp = neighWp;
+                            maxDot = dotProd;
+                        }
+                    }
+
+                    if (desiredNextWp != nextWp)
+                    {
+                        return float.MaxValue;
+                    }
+                }
+                
+                dist += (currWp.GetPosition() - lastWp.GetPosition()).magnitude;
+            }
+        }
+
+        Vector3 a1WpPos = path[0].GetPosition();
+        Vector3 a2WpPos = path[1].GetPosition();
+
+        Vector3 b1WpPos = path[path.Count - 2].GetPosition();
+        Vector3 b2WpPos = path[path.Count - 1].GetPosition();
+
+        float aXnorm = -MathLib.InverseLerp(a, a1WpPos, a2WpPos);
+        float bXnorm = -MathLib.InverseLerp(b, b2WpPos, b1WpPos);
+
+        float aDist = (a2WpPos - a1WpPos).magnitude * aXnorm;
+        float bDist = (b2WpPos - b1WpPos).magnitude * bXnorm;
+
+        return dist + aDist + bDist;
     }
 
     // Waypoints should be close to respective points
@@ -163,7 +252,7 @@ public class PathFinder : MonoBehaviour
 
     public (Waypoint, Waypoint, float) GetSegmentVehicleOn(Vector3 pos)
     {
-        var wps = ClosestWaypoints(pos);
+        var wps = ClosestWaypoints(pos, 10);
 
         foreach (Waypoint wp in wps)
         {
@@ -238,14 +327,15 @@ public class PathFinder : MonoBehaviour
         return closestWp;
     }
 
-    public Waypoint[] ClosestWaypoints(Vector3 pos)
-    {
-        int numWps = allWaypoints.Length;
+    float[] _dists;
 
-        float[] dists = new float[numWps];
+    public Waypoint[] ClosestWaypoints(Vector3 pos, int? numClosest)
+    {
+        int numWps = numClosest ?? allWaypoints.Length;
+
         for (int i = 0; i < numWps; i++)
         {
-            dists[i] = float.MaxValue;
+            _dists[i] = float.MaxValue;
         }
 
         Waypoint[] wps = new Waypoint[numWps];
@@ -254,19 +344,19 @@ public class PathFinder : MonoBehaviour
         {
             float dist = (wp.GetPosition() - pos).sqrMagnitude;
 
-            if (dist < dists[numWps - 1])
+            if (dist < _dists[numWps - 1])
             {
                 for (int i1 = 0; i1 < numWps; i1++)
                 {
-                    if (dist < dists[i1])
+                    if (dist < _dists[i1])
                     {
                         for (int i2 = numWps - 1; i2 >= i1 + 1; i2--)
                         {
                             wps[i2] = wps[i2 - 1];
-                            dists[i2] = dists[i2 - 1];
+                            _dists[i2] = _dists[i2 - 1];
                         }
                         wps[i1] = wp;
-                        dists[i1] = dist;
+                        _dists[i1] = dist;
                         break;
                     }
                 }
@@ -276,35 +366,40 @@ public class PathFinder : MonoBehaviour
         return wps;
     }
 
-    public Waypoint FurthestWaypoint(Waypoint startWp)
+    public (Waypoint, float) FurthestWaypoint(Waypoint startWp)
     {
-        float dist = 0;
-        Waypoint wp = _FurthestWaypoint(startWp, ref dist);
-        return wp;
+        (Waypoint, float) res = _FurthestWaypoint(startWp, new HashSet<Waypoint>());
+        return res;
     }
 
-    private Waypoint _FurthestWaypoint(Waypoint startWp, ref float dist)
+    private (Waypoint, float) _FurthestWaypoint(Waypoint startWp, HashSet<Waypoint> wps)
     {
+        wps.Add(startWp);
         Waypoint furthestWp = startWp;
-        float furthestDist = -1;
+        float furthestDist = 0;
         foreach (Waypoint wp in startWp.neighbors)
         {
-            float newDist = dist + (wp.GetPosition() - startWp.GetPosition()).sqrMagnitude;
-            Waypoint canidateWp = _FurthestWaypoint(wp, ref newDist);
-
-            if (newDist > furthestDist)
+            if (!wps.Contains(wp))
             {
-                furthestDist = newDist;
-                furthestWp = canidateWp;
+                (Waypoint, float) res = _FurthestWaypoint(wp, wps);
+                float currDist = res.Item2 + Vector3.Distance(wp.GetPosition(), startWp.GetPosition());
+
+                if (currDist > furthestDist)
+                {
+                    furthestDist = currDist;
+                    furthestWp = res.Item1;
+                }
             }
         }
 
-        return furthestWp;
+        wps.Remove(startWp);
+
+        return (furthestWp, furthestDist);
     }
 
     public List<Waypoint> CalculatePath(Vector3 startPos, Waypoint end)
     {
-        var wps = ClosestWaypoints(startPos);
+        var wps = ClosestWaypoints(startPos, 10);
         foreach (Waypoint wp in wps)
         {
             List<Waypoint> path = CalculatePath(wp, end);
@@ -318,17 +413,20 @@ public class PathFinder : MonoBehaviour
         return null;
     }
 
+    PriorityQueue<Waypoint, float> openSet = new PriorityQueue<Waypoint, float>();
+    Dictionary<Waypoint, Waypoint> cameFrom = new Dictionary<Waypoint, Waypoint>();
+    Dictionary<Waypoint, float> gScore = new Dictionary<Waypoint, float>();
+
     // A* pathfinding algorithm (graph) https://en.wikipedia.org/wiki/A*_search_algorithm
     public List<Waypoint> CalculatePath(Waypoint start, Waypoint end)
     {
+        openSet.Clear();
+        cameFrom.Clear();
+        gScore.Clear();
+
         float startFAndHScore = HeuristicFunction(start, end);
 
-        var openSet = new PriorityQueue<Waypoint, float>();
         openSet.Enqueue(start, startFAndHScore);
-
-        var cameFrom = new Dictionary<Waypoint, Waypoint>();
-
-        var gScore = new Dictionary<Waypoint, float>();
         gScore[start] = 0.0f;
 
         while (openSet.Count > 0)
@@ -379,8 +477,7 @@ public class PathFinder : MonoBehaviour
         return (currentWp.GetPosition() - endWp.GetPosition()).sqrMagnitude;
     }
 
-    private List<Waypoint> ReconstructPath(
-        Dictionary<Waypoint, Waypoint> cameFrom, Waypoint lastWp)
+    private List<Waypoint> ReconstructPath(Dictionary<Waypoint, Waypoint> cameFrom, Waypoint lastWp)
     {
         var path = new List<Waypoint>();
         path.Add(lastWp);

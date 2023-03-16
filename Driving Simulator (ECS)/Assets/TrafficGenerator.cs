@@ -32,9 +32,9 @@ public class TrafficGenerator : MonoBehaviour
                 
                 Waypoint spawnWp = canidateWps[randIdx];
                 Vector3 spawnPos = spawnWp.GetPosition();
-                Waypoint destWp = pathFinder.FurthestWaypoint(spawnWp);
+                (Waypoint, float) destWpDist = pathFinder.FurthestWaypoint(spawnWp);
 
-                var path = pathFinder.CalculatePath(spawnWp, destWp);
+                var path = pathFinder.CalculatePath(spawnWp, destWpDist.Item1);
 
                 // Use 1st and 2nd waypoint to calculate spawn rotation
                 Quaternion spawnRot = Quaternion.LookRotation((path[1].GetPosition() - path[0].GetPosition()).normalized);

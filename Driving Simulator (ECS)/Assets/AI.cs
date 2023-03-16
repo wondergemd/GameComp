@@ -32,8 +32,7 @@ public class AI : MonoBehaviour
     public Vehicle playerVehicle;
 
     // m/s^2
-    public float minAcc = 2f;
-    public float maxAcc = 3f; 
+    public float maxComfortAcc = 3f;
 
     Vector3 vehPos = Vector3.zero;
     float vehSpeed = 0f; // m/s
@@ -91,6 +90,13 @@ public class AI : MonoBehaviour
         if (path.Count < 3)
         {
             Debug.LogError("Given Path Length < 3! Path length = " + path.Count);
+            string strPath = "Path: ";
+            foreach (Waypoint wp in path)
+            {
+                strPath += wp.name + ", ";  
+            }
+            Debug.LogError(strPath);
+
             return false;
         }
 
@@ -121,7 +127,7 @@ public class AI : MonoBehaviour
                 //turnSpeed = turnSpeed * Mathf.Sin(Mathf.Min(Mathf.Asin(Mathf.Min(1, n2SpeedSq / turnSpeedSq)) + 2 * curvature * n1.length, pi * 0.5))
 
                 startRadius = segment.catmullCurve.ClosestPointOnCurveMoreInfo(wpStartPos, 10).radius; //MathLib.GetRadius(wpLastPos, wpStartPos, wpEndPos);
-                startMaxSpeed = Mathf.Min(100, Mathf.Sqrt(maxAcc * Mathf.Abs(startRadius)));
+                startMaxSpeed = Mathf.Min(100, Mathf.Sqrt(maxComfortAcc * Mathf.Abs(startRadius)));
 
                 SegmentData prevSegment = plan[i - 1];
                 prevSegment.endRadius = startRadius;
@@ -169,7 +175,7 @@ public class AI : MonoBehaviour
             SegmentData nextSeg = plan[i + 1];
 
             // vf^2 = vi^2 + 2 * a * d
-            float nextSegSpeedSqrAfterSlowing = currSeg.endSpeed * currSeg.endSpeed + 2 * -maxAcc * nextSeg.length;
+            float nextSegSpeedSqrAfterSlowing = currSeg.endSpeed * currSeg.endSpeed + 2 * -maxComfortAcc * nextSeg.length;
 
             //Debug.Log("i: " + i + ", " + currSeg.speed + ", " + Mathf.Sqrt(nextSegSpeedSqrAfterSlowing) + ", " + nextSeg.speed);
 
@@ -177,7 +183,7 @@ public class AI : MonoBehaviour
             // and backtrace to make it so we can slow down
             if (nextSegSpeedSqrAfterSlowing - 0.001f > nextSeg.endSpeed * nextSeg.endSpeed)
             {
-                currSeg.endSpeed = Mathf.Sqrt(nextSeg.endSpeed * nextSeg.endSpeed + 2 * maxAcc * nextSeg.length);
+                currSeg.endSpeed = Mathf.Sqrt(nextSeg.endSpeed * nextSeg.endSpeed + 2 * maxComfortAcc * nextSeg.length);
                 nextSeg.startSpeed = currSeg.endSpeed;
 
                 //Debug.Log("new currsegSpeed: " + currSeg.speed);
@@ -248,15 +254,18 @@ public class AI : MonoBehaviour
                     }
                 }
 
-                float distBetween = pathFinder.DistanceBetweenTwoPointsOnPath(this.vehPos, ai.vehPos, currSeg.endWp, otherCurrSeg.endWp) - 2f * vehSpeed - 5f;
+                float straightDistBetween = (vehPos - ai.vehPos).sqrMagnitude;
+                if (straightDistBetween > vehSpeed * vehSpeed / (2f * maxComfortAcc * 0.5f)) continue;
+
+                float distBetween = pathFinder.DistanceToVehicleOnPathTrajectory(this.vehicle, ai.vehicle, currSeg.endWp, otherCurrSeg.endWp) - 2f * vehSpeed - 5f;
                 this.tempdistBetween = Mathf.Min(distBetween, tempdistBetween);
 
                 // vf^2 = vi^2 + 2 * a * d
-                float speedSqrAfterSlowing = vehSpeed * vehSpeed + 2 * -maxAcc * distBetween;
+                float speedSqrAfterSlowing = vehSpeed * vehSpeed + 2 * -maxComfortAcc * distBetween;
 
                 if (speedSqrAfterSlowing > ai.vehSpeed * ai.vehSpeed)
                 {
-                    float followAISpeed = Mathf.Sqrt(ai.vehSpeed * ai.vehSpeed + 2 * maxAcc * distBetween);
+                    float followAISpeed = Mathf.Sqrt(ai.vehSpeed * ai.vehSpeed + 2 * maxComfortAcc * distBetween);
                     targetSpeed = Mathf.Min(targetSpeed, followAISpeed);
                 }
             }
@@ -277,15 +286,15 @@ public class AI : MonoBehaviour
         (Waypoint, Waypoint, float) seg = pathFinder.GetSegmentVehicleOn(pPos);
         if (seg.Item1 != null && !(currSeg.endWp == seg.Item2 && this.currSegXnorm > seg.Item3))
         {
-            float distBetween = pathFinder.DistanceBetweenTwoPointsOnPath(this.vehPos, pPos, currSeg.endWp, seg.Item2) - 2f * vehSpeed - 5f;
+            float distBetween = pathFinder.DistanceToVehicleOnPathTrajectory(this.vehicle, playerVehicle, currSeg.endWp, seg.Item2) - 2f * vehSpeed - 5f;
             this.tempdistBetween = Mathf.Min(distBetween, tempdistBetween);
 
             // vf^2 = vi^2 + 2 * a * d
-            float speedSqrAfterSlowing = vehSpeed * vehSpeed + 2 * -maxAcc * distBetween;
+            float speedSqrAfterSlowing = vehSpeed * vehSpeed + 2 * -maxComfortAcc * distBetween;
 
             if (speedSqrAfterSlowing > pSpeed * pSpeed)
             {
-                float followAISpeed = Mathf.Sqrt(pSpeed * pSpeed + 2 * maxAcc * distBetween);
+                float followAISpeed = Mathf.Sqrt(pSpeed * pSpeed + 2 * maxComfortAcc * distBetween);
                 targetSpeed = Mathf.Min(targetSpeed, followAISpeed);
             }
 
