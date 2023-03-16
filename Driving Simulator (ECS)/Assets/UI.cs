@@ -3,27 +3,11 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 
-public class Flashing
-{
-    private bool _left = false;
-    public bool left = false;
-    {
-        get { return _left; }
-        set { _left = left; }
-    }
-   
-    private bool _left = false;
-    public bool left = false;
-    {
-        get { return _left; }
-        set { _left = left; }
-    }
-}
+
 
 
 public class UI : MonoBehaviour
 {
-    public Flashing Flashing;
 
     public Vehicle vehicle;
     public Player player;
@@ -45,8 +29,8 @@ public class UI : MonoBehaviour
 
     public bool debug = false;
 
-    private bool leftFlashing = false;
-    private bool rightFlashing = false;
+    public bool leftFlashing = false;
+    public bool rightFlashing = false;
 
 
     IEnumerator FlashLeftCoroutine()
@@ -94,26 +78,7 @@ public class UI : MonoBehaviour
         flashing = false;
     }
 
-    private void BlindSpotIndicatorsMain()
-    {
-        if (player.blindSpotLeft)
-        {
-            if (!Flashing.left)
-            {
-                StartCoroutine(FlashElement(Flashing.left, blindSpotIndicatorLeft));
-            }
-            player.blindSpotLeft = false;
-        }
 
-        if (player.blindSpotRight)
-        {
-            if (!Flashing.right)
-            {
-                StartCoroutine(FlashElement(Flashing.right, blindSpotIndicatorRight));
-            }
-            player.blindSpotRight = false;
-        }
-    }
 
 
     // Rotates Speedometer
