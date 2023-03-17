@@ -175,7 +175,7 @@ public class Player : MonoBehaviour
         float t = TimeToMatchSpeed(aiSpeed);
 
         // distance AI travels in time it takes player vehicle to stop | d = v0*t + 0.5*a*t^2
-        float aiDistTraveledInTimeToBrake = (aiSpeed * t) + (0.5f * aiAcc * (Mathf.Pow(t, 2f)));
+        float aiDistTraveledInTimeToBrake = ((aiSpeed - playerVehicle.GetSpeed()) * t) + (0.5f * aiAcc * (Mathf.Pow(t, 2f)));
 
         // distance between player vehicle and AI vehicle if player vehicle applies full brakes now. 
         float DistBetweenWithBraking = (aiDistTraveledInTimeToBrake + minDist) - DistanceToMatchSpeed(aiSpeed);
@@ -187,9 +187,24 @@ public class Player : MonoBehaviour
         if (DistBetweenWithBraking <= minForwardCollisionDist)
         {
             collisionDetected = true;
-            collisionDetectedTime = Time.time;
-            //Debug.Log("COLLISION DETECTED EMERGENCY BRAKING");
+            playerVehicle.Throttle = 0;
+            playerVehicle.Brake = 1;
+            Debug.Log("Collision Detected");
         }
+        else
+        {
+            collisionDetected = false;
+        }
+    }
+
+
+    IEnumerator ForwardCollisionBraking()
+    {
+
+
+
+        yield return new WaitUntil(() => playerVehicle.GetSpeed() <= 0.1);
+
     }
 
 
@@ -210,7 +225,7 @@ public class Player : MonoBehaviour
         }
     }
 
-
+    // Estimates distance needed to match given speed based on the vehicle's braking torque and mass, and current speed.
     private float DistanceToMatchSpeed(float finalSpeed)
     {
         if (finalSpeed > playerVehicle.GetSpeed())
@@ -222,7 +237,7 @@ public class Player : MonoBehaviour
         return (playerVehicle.GetSpeed() * t) + ((0.5f) * -maxDeceleration * (Mathf.Pow(t, 2f)));
     }
 
-
+    // Estimates time needed to match given speed based on the vehicle's braking torque and mass, and current speed.
     private float TimeToMatchSpeed(float finalSpeed)
     {
         if (finalSpeed > playerVehicle.GetSpeed())
@@ -368,8 +383,11 @@ public class Player : MonoBehaviour
         //Debug.Log("accbrakeinput = " + accbrakeInput);
 
         // Vehicle with user input
-        playerVehicle.Throttle = accbrakeInput;
-        playerVehicle.Brake = -accbrakeInput;
+        if (!collisionDetected)
+        {
+            playerVehicle.Throttle = accbrakeInput;
+            playerVehicle.Brake = -accbrakeInput;
+        }
         playerVehicle.Steering = steeringInput;
 
         Vector3 localAcc = Quaternion.Inverse(playerVehicle.GetRotation()) * playerVehicle.GetAccelerationVec();
@@ -412,6 +430,7 @@ public class Player : MonoBehaviour
 
     public void FixedUpdate()
     {
+        ForwardCollisionDetection();
 
         UserInput();
 
@@ -419,8 +438,7 @@ public class Player : MonoBehaviour
 
         BlindSpotIndicator();
 
-        ForwardCollisionDetection();
-        EmergencyBraking();
+        //EmergencyBraking();
 
         DebugTextUpdater();
 
