@@ -61,6 +61,12 @@ public class Player : MonoBehaviour
     public float estTime = 0f;
 
 
+    [Space(10)]
+    [Header("Gear System")]
+    public int gear = 1;
+
+
+
     // Utility function for a single Raycast sensor.
     private RaycastHit Sensor(Vector3 sensorPos, float sensorAngle, float sensorLength)
     {
@@ -326,8 +332,19 @@ public class Player : MonoBehaviour
         }
     }
 
+    private void Gears()
+    {
+        if (Input.GetKeyDown(KeyCode.Alpha1)) //drive
+            gear = 1;
+        else if (Input.GetKeyDown(KeyCode.Alpha2)) // neutral
+            gear = 2;
+        else if (Input.GetKeyDown(KeyCode.Alpha3)) // park
+            gear = 3;
+        else if (Input.GetKeyDown(KeyCode.Alpha4)) // reverse
+            gear = 4;
+    }
 
-    private void UserInput()
+    private void GearDrive()
     {
         // Positive for accelerating and negative for braking
         accbrakeInput = Input.GetAxis("Vertical");
@@ -342,15 +359,77 @@ public class Player : MonoBehaviour
         }
         playerVehicle.Steering = steeringInput;
 
-        Vector3 localAcc = Quaternion.Inverse(playerVehicle.GetRotation()) * playerVehicle.GetAccelerationVec();
+    }
 
-        longAcc = accLongSmoother.Get(localAcc.z);
-        latAcc = accLatSmoother.Get(localAcc.x);
+    private void GearNetural()
+    {
+        steeringInput = Input.GetAxis("Horizontal");
+        playerVehicle.Throttle = 0;
+        playerVehicle.Brake = 0;
+        playerVehicle.Steering = steeringInput;
+    }
+
+    private void GearPark()
+    {
+        playerVehicle.Throttle = 0;
+        playerVehicle.Brake = 1;
+    }
+
+    private void GearReverse()
+    {
+        // Positive for accelerating and negative for braking
+        accbrakeInput = Input.GetAxis("Vertical");
+        steeringInput = Input.GetAxis("Horizontal");
+        Debug.Log("accbrakeinput = " + accbrakeInput);
+
+        // Vehicle with user input
+        if (!collisionDetected)
+        {
+            playerVehicle.Throttle = -accbrakeInput;
+            playerVehicle.Brake = -accbrakeInput;
+        }
+        playerVehicle.Steering = steeringInput;
+    }
+
+    private void Motor()
+    {
+        Gears();
+        
+        switch (gear)
+        {
+            // drive
+            case 1:
+                GearDrive();
+                break;
+
+            // neutral
+            case 2:
+                GearNetural();
+                break;
+            
+            // park
+            case 3:
+                GearPark();
+                break;
+
+            case 4:
+                GearReverse();
+                break;
+
+            default:
+                GearDrive();
+                break;
+        }
     }
 
 
     private void DebugTextUpdater()
     {
+        Vector3 localAcc = Quaternion.Inverse(playerVehicle.GetRotation()) * playerVehicle.GetAccelerationVec();
+
+        longAcc = accLongSmoother.Get(localAcc.z);
+        latAcc = accLatSmoother.Get(localAcc.x);
+
         // Debug Text Updater
         if (textUpdateTimer > 0.1f)
         {
@@ -384,13 +463,14 @@ public class Player : MonoBehaviour
     {
         ForwardCollisionDetection();
 
-        UserInput();
+        Motor();
 
         SteeringWheelTurning(steeringInput);
 
         BlindSpotIndicator();
 
         DebugTextUpdater();
+
 
     }
 }

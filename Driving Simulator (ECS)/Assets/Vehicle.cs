@@ -29,7 +29,7 @@ public class Vehicle : MonoBehaviour
     public float Throttle
     {
         get { return _throttle; }
-        set { _throttle = Mathf.Clamp01(value); }
+        set { _throttle = Mathf.Clamp(value, -1.0f, 1.0f); }
     }
 
     private float _brake;

@@ -16,6 +16,11 @@ public class UI : MonoBehaviour
     public Image blindSpotIndicatorLeft;
     public Image blindSpotIndicatorRight;
     public Image forwardCollisionDetection;
+    public Image park;
+    public Image drive;
+    public Image reverse;
+    public Image neutral;
+
 
     public Text SpeedText;
 
@@ -148,6 +153,44 @@ public class UI : MonoBehaviour
     }
 
 
+    private void Gears()
+    {
+        switch (player.gear)
+        {
+            case 1:
+                drive.enabled = true;
+                neutral.enabled = false;
+                reverse.enabled = false;
+                park.enabled = false;
+                break;
+            case 2:
+                drive.enabled = false;
+                neutral.enabled = true;
+                reverse.enabled = false;
+                park.enabled = false;
+                break;
+            case 3:
+                drive.enabled = false;
+                neutral.enabled = false;
+                reverse.enabled = false;
+                park.enabled = true;
+                break;
+            case 4:
+                drive.enabled = false;
+                neutral.enabled = false;
+                reverse.enabled = true;
+                park.enabled = false;
+                break;
+            default:
+                drive.enabled = true;
+                neutral.enabled = false;
+                reverse.enabled = false;
+                park.enabled = false;
+                break;
+        }
+    }
+
+
     // used to display speed converted to MPH next to speedometer for debugging
     // can probably be deleted
     private void debugSpeed()
@@ -188,5 +231,7 @@ public class UI : MonoBehaviour
         BlindSpotIndicatorsMain();
 
         ForwardCollisionIndicatorsMain();
+
+        Gears();
     }
 }
