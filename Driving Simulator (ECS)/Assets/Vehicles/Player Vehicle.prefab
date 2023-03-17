@@ -279,6 +279,7 @@ MonoBehaviour:
   maxMotorTorque: 750
   maxBrakeTorque: 1000
   maxSteeringAngle: 30
+  gear: 1
   debugApplyBrake: 0
 --- !u!114 &-8928680637980306181
 MonoBehaviour:
@@ -308,6 +309,7 @@ MonoBehaviour:
   blindSpotLength: 5
   blindSpotLeft: 0
   blindSpotRight: 0
+  sameDirectionThreshold: 0.25
   maxSteeringWheelAngle: 180
   audioToggle: 1
   testBrakes: 0
@@ -316,6 +318,7 @@ MonoBehaviour:
   brakeSpeed: 0
   estDist: 0
   estTime: 0
+  gear: 1
 --- !u!82 &-354161189025927976
 AudioSource:
   m_ObjectHideFlags: 0

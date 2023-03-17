@@ -155,7 +155,7 @@ public class UI : MonoBehaviour
 
     private void Gears()
     {
-        switch (player.gear)
+        switch (vehicle.gear)
         {
             case 1:
                 drive.enabled = true;

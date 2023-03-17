@@ -61,12 +61,6 @@ public class Player : MonoBehaviour
     public float estTime = 0f;
 
 
-    [Space(10)]
-    [Header("Gear System")]
-    public int gear = 1;
-
-
-
     // Utility function for a single Raycast sensor.
     private RaycastHit Sensor(Vector3 sensorPos, float sensorAngle, float sensorLength)
     {
@@ -332,20 +326,23 @@ public class Player : MonoBehaviour
         }
     }
 
-    private void Gears()
+
+    private void SetGear()
     {
         if (Input.GetKeyDown(KeyCode.Alpha1)) //drive
-            gear = 1;
+            playerVehicle.gear = 1;
         else if (Input.GetKeyDown(KeyCode.Alpha2)) // neutral
-            gear = 2;
+            playerVehicle.gear = 2;
         else if (Input.GetKeyDown(KeyCode.Alpha3)) // park
-            gear = 3;
+            playerVehicle.gear = 3;
         else if (Input.GetKeyDown(KeyCode.Alpha4)) // reverse
-            gear = 4;
+            playerVehicle.gear = 4;
     }
 
-    private void GearDrive()
+
+    private void UserInput()
     {
+        SetGear();
         // Positive for accelerating and negative for braking
         accbrakeInput = Input.GetAxis("Vertical");
         steeringInput = Input.GetAxis("Horizontal");
@@ -359,67 +356,6 @@ public class Player : MonoBehaviour
         }
         playerVehicle.Steering = steeringInput;
 
-    }
-
-    private void GearNetural()
-    {
-        steeringInput = Input.GetAxis("Horizontal");
-        playerVehicle.Throttle = 0;
-        playerVehicle.Brake = 0;
-        playerVehicle.Steering = steeringInput;
-    }
-
-    private void GearPark()
-    {
-        playerVehicle.Throttle = 0;
-        playerVehicle.Brake = 1;
-    }
-
-    private void GearReverse()
-    {
-        // Positive for accelerating and negative for braking
-        accbrakeInput = Input.GetAxis("Vertical");
-        steeringInput = Input.GetAxis("Horizontal");
-        Debug.Log("accbrakeinput = " + accbrakeInput);
-
-        // Vehicle with user input
-        if (!collisionDetected)
-        {
-            playerVehicle.Throttle = -accbrakeInput;
-            playerVehicle.Brake = -accbrakeInput;
-        }
-        playerVehicle.Steering = steeringInput;
-    }
-
-    private void Motor()
-    {
-        Gears();
-        
-        switch (gear)
-        {
-            // drive
-            case 1:
-                GearDrive();
-                break;
-
-            // neutral
-            case 2:
-                GearNetural();
-                break;
-            
-            // park
-            case 3:
-                GearPark();
-                break;
-
-            case 4:
-                GearReverse();
-                break;
-
-            default:
-                GearDrive();
-                break;
-        }
     }
 
 
@@ -463,7 +399,7 @@ public class Player : MonoBehaviour
     {
         ForwardCollisionDetection();
 
-        Motor();
+        UserInput();
 
         SteeringWheelTurning(steeringInput);
 

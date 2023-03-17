@@ -81,6 +81,7 @@ MonoBehaviour:
   maxMotorTorque: 750
   maxBrakeTorque: 1000
   maxSteeringAngle: 30
+  gear: 1
   debugApplyBrake: 0
 --- !u!114 &9099434543009328055
 MonoBehaviour:
