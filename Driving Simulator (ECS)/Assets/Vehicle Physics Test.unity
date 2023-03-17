@@ -38,7 +38,7 @@ RenderSettings:
   m_ReflectionIntensity: 1
   m_CustomReflection: {fileID: 0}
   m_Sun: {fileID: 0}
-  m_IndirectSpecularColor: {r: 2160.043, g: 2263.8164, b: 3286.539, a: 1}
+  m_IndirectSpecularColor: {r: 2158.3252, g: 2262.8594, b: 3286.4414, a: 1}
   m_UseRadianceAmbientProbe: 0
 --- !u!157 &3
 LightmapSettings:
@@ -152,7 +152,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e3dd5ba28705fab4098ef9bbdab357ab, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  tcd: {fileID: 0}
   width: 5
+  speedLimit: 20
   neighbors: []
   prevNeighbors: []
 --- !u!4 &7641740
@@ -199,7 +201,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e3dd5ba28705fab4098ef9bbdab357ab, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  tcd: {fileID: 0}
   width: 5
+  speedLimit: 20
   neighbors: []
   prevNeighbors: []
 --- !u!4 &9366883
@@ -246,7 +250,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e3dd5ba28705fab4098ef9bbdab357ab, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  tcd: {fileID: 0}
   width: 5
+  speedLimit: 20
   neighbors: []
   prevNeighbors: []
 --- !u!4 &12825066
@@ -293,7 +299,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e3dd5ba28705fab4098ef9bbdab357ab, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  tcd: {fileID: 0}
   width: 5
+  speedLimit: 20
   neighbors: []
   prevNeighbors: []
 --- !u!4 &22159897
@@ -438,7 +446,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e3dd5ba28705fab4098ef9bbdab357ab, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  tcd: {fileID: 0}
   width: 5
+  speedLimit: 20
   neighbors: []
   prevNeighbors: []
 --- !u!4 &59643425
@@ -583,7 +593,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e3dd5ba28705fab4098ef9bbdab357ab, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  tcd: {fileID: 0}
   width: 5
+  speedLimit: 20
   neighbors: []
   prevNeighbors: []
 --- !u!4 &113974482
@@ -1230,7 +1242,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e3dd5ba28705fab4098ef9bbdab357ab, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  tcd: {fileID: 0}
   width: 5
+  speedLimit: 20
   neighbors: []
   prevNeighbors: []
 --- !u!4 &174026433
@@ -1413,6 +1427,55 @@ Transform:
   m_Father: {fileID: 1464544456}
   m_RootOrder: 2
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &194136888
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 194136889}
+  - component: {fileID: 194136890}
+  m_Layer: 0
+  m_Name: TrafficLight (3)
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &194136889
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 194136888}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: -205.22, y: 0, z: 10.37}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 619185238}
+  m_RootOrder: 3
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &194136890
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 194136888}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 6ecfe05f4097e25498a930eb179bf40b, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  state: 2
+  lightDurations:
+  - 8
+  - 2
+  - 10
 --- !u!1 &196881452
 GameObject:
   m_ObjectHideFlags: 0
@@ -1540,7 +1603,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e3dd5ba28705fab4098ef9bbdab357ab, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  tcd: {fileID: 0}
   width: 5
+  speedLimit: 20
   neighbors: []
   prevNeighbors: []
 --- !u!4 &231818690
@@ -1593,7 +1658,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e3dd5ba28705fab4098ef9bbdab357ab, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  tcd: {fileID: 0}
   width: 5
+  speedLimit: 20
   neighbors:
   - {fileID: 1395974432}
   prevNeighbors: []
@@ -1641,7 +1708,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e3dd5ba28705fab4098ef9bbdab357ab, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  tcd: {fileID: 0}
   width: 5
+  speedLimit: 20
   neighbors: []
   prevNeighbors: []
 --- !u!4 &284811003
@@ -1786,7 +1855,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e3dd5ba28705fab4098ef9bbdab357ab, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  tcd: {fileID: 0}
   width: 5
+  speedLimit: 20
   neighbors:
   - {fileID: 1715644283}
   - {fileID: 1395974432}
@@ -1836,7 +1907,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e3dd5ba28705fab4098ef9bbdab357ab, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  tcd: {fileID: 0}
   width: 5
+  speedLimit: 20
   neighbors: []
   prevNeighbors: []
 --- !u!4 &316100238
@@ -1883,7 +1956,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e3dd5ba28705fab4098ef9bbdab357ab, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  tcd: {fileID: 0}
   width: 5
+  speedLimit: 20
   neighbors: []
   prevNeighbors: []
 --- !u!4 &317151194
@@ -2051,7 +2126,7 @@ PrefabInstance:
     - target: {fileID: 3417196952380248398, guid: e314d1122e59a2e48870e8accdfa35b8,
         type: 3}
       propertyPath: m_LocalPosition.x
-      value: 0.000022888187
+      value: 0.000007629395
       objectReference: {fileID: 0}
     - target: {fileID: 3417196952380248398, guid: e314d1122e59a2e48870e8accdfa35b8,
         type: 3}
@@ -2061,7 +2136,7 @@ PrefabInstance:
     - target: {fileID: 3417196952380248398, guid: e314d1122e59a2e48870e8accdfa35b8,
         type: 3}
       propertyPath: m_LocalPosition.z
-      value: -0.00000047683352
+      value: -0.00000047683625
       objectReference: {fileID: 0}
     - target: {fileID: 3417196952380248398, guid: e314d1122e59a2e48870e8accdfa35b8,
         type: 3}
@@ -2179,7 +2254,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e3dd5ba28705fab4098ef9bbdab357ab, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  tcd: {fileID: 0}
   width: 5
+  speedLimit: 20
   neighbors: []
   prevNeighbors: []
 --- !u!4 &342652049
@@ -2456,7 +2533,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e3dd5ba28705fab4098ef9bbdab357ab, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  tcd: {fileID: 746859170}
   width: 5
+  speedLimit: 20
   neighbors: []
   prevNeighbors: []
 --- !u!4 &453716805
@@ -2503,7 +2582,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e3dd5ba28705fab4098ef9bbdab357ab, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  tcd: {fileID: 0}
   width: 5
+  speedLimit: 20
   neighbors: []
   prevNeighbors: []
 --- !u!4 &471468266
@@ -2521,6 +2602,55 @@ Transform:
   m_Father: {fileID: 173499644}
   m_RootOrder: 14
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &484792266
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 484792267}
+  - component: {fileID: 484792268}
+  m_Layer: 0
+  m_Name: TrafficLight (1)
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &484792267
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 484792266}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: -210.38, y: 0, z: -5.68}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 619185238}
+  m_RootOrder: 1
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &484792268
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 484792266}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 6ecfe05f4097e25498a930eb179bf40b, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  state: 0
+  lightDurations:
+  - 8
+  - 2
+  - 10
 --- !u!1 &523102107
 GameObject:
   m_ObjectHideFlags: 0
@@ -2550,9 +2680,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e3dd5ba28705fab4098ef9bbdab357ab, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  tcd: {fileID: 0}
   width: 5
+  speedLimit: 20
   neighbors:
-  - {fileID: 262713855}
+  - {fileID: 1395974432}
   prevNeighbors: []
 --- !u!4 &523102109
 Transform:
@@ -2598,7 +2730,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e3dd5ba28705fab4098ef9bbdab357ab, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  tcd: {fileID: 484792268}
   width: 5
+  speedLimit: 20
   neighbors: []
   prevNeighbors: []
 --- !u!4 &523202838
@@ -2742,7 +2876,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e3dd5ba28705fab4098ef9bbdab357ab, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  tcd: {fileID: 0}
   width: 5
+  speedLimit: 20
   neighbors: []
   prevNeighbors: []
 --- !u!4 &555499456
@@ -2789,7 +2925,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e3dd5ba28705fab4098ef9bbdab357ab, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  tcd: {fileID: 0}
   width: 5
+  speedLimit: 20
   neighbors: []
   prevNeighbors: []
 --- !u!4 &588758577
@@ -2890,7 +3028,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e3dd5ba28705fab4098ef9bbdab357ab, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  tcd: {fileID: 0}
   width: 5
+  speedLimit: 20
   neighbors: []
   prevNeighbors: []
 --- !u!4 &617011734
@@ -2907,6 +3047,41 @@ Transform:
   m_Children: []
   m_Father: {fileID: 173499644}
   m_RootOrder: 27
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &619185237
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 619185238}
+  m_Layer: 0
+  m_Name: Traffic Control Devices
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &619185238
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 619185237}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children:
+  - {fileID: 746859169}
+  - {fileID: 484792267}
+  - {fileID: 949778368}
+  - {fileID: 194136889}
+  m_Father: {fileID: 0}
+  m_RootOrder: 15
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &622889525
 GameObject:
@@ -2937,7 +3112,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e3dd5ba28705fab4098ef9bbdab357ab, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  tcd: {fileID: 0}
   width: 5
+  speedLimit: 20
   neighbors: []
   prevNeighbors: []
 --- !u!4 &622889527
@@ -3082,7 +3259,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e3dd5ba28705fab4098ef9bbdab357ab, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  tcd: {fileID: 0}
   width: 5
+  speedLimit: 20
   neighbors: []
   prevNeighbors: []
 --- !u!4 &653292623
@@ -3226,7 +3405,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e3dd5ba28705fab4098ef9bbdab357ab, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  tcd: {fileID: 0}
   width: 5
+  speedLimit: 20
   neighbors: []
   prevNeighbors: []
 --- !u!4 &712551549
@@ -3244,6 +3425,55 @@ Transform:
   m_Father: {fileID: 173499644}
   m_RootOrder: 5
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &746859168
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 746859169}
+  - component: {fileID: 746859170}
+  m_Layer: 0
+  m_Name: TrafficLight
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &746859169
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 746859168}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: -188, y: 0, z: 3.96}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 619185238}
+  m_RootOrder: 0
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &746859170
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 746859168}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 6ecfe05f4097e25498a930eb179bf40b, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  state: 0
+  lightDurations:
+  - 8
+  - 2
+  - 10
 --- !u!1 &785821779
 GameObject:
   m_ObjectHideFlags: 0
@@ -3371,7 +3601,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e3dd5ba28705fab4098ef9bbdab357ab, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  tcd: {fileID: 0}
   width: 5
+  speedLimit: 20
   neighbors:
   - {fileID: 2111781329}
   prevNeighbors: []
@@ -3443,7 +3675,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e3dd5ba28705fab4098ef9bbdab357ab, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  tcd: {fileID: 0}
   width: 5
+  speedLimit: 20
   neighbors: []
   prevNeighbors: []
 --- !u!4 &891929592
@@ -3490,7 +3724,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e3dd5ba28705fab4098ef9bbdab357ab, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  tcd: {fileID: 0}
   width: 5
+  speedLimit: 20
   neighbors: []
   prevNeighbors: []
 --- !u!4 &898536987
@@ -3537,7 +3773,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e3dd5ba28705fab4098ef9bbdab357ab, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  tcd: {fileID: 194136890}
   width: 5
+  speedLimit: 20
   neighbors: []
   prevNeighbors: []
 --- !u!4 &898817427
@@ -3653,6 +3891,55 @@ Transform:
   m_Father: {fileID: 602976992}
   m_RootOrder: 10
   m_LocalEulerAnglesHint: {x: 0, y: 90, z: 0}
+--- !u!1 &949778367
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 949778368}
+  - component: {fileID: 949778369}
+  m_Layer: 0
+  m_Name: TrafficLight (2)
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &949778368
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 949778367}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: -196.37, y: 0, z: -9.68}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 619185238}
+  m_RootOrder: 2
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &949778369
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 949778367}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 6ecfe05f4097e25498a930eb179bf40b, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  state: 2
+  lightDurations:
+  - 8
+  - 2
+  - 10
 --- !u!1 &967524043
 GameObject:
   m_ObjectHideFlags: 0
@@ -3780,7 +4067,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e3dd5ba28705fab4098ef9bbdab357ab, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  tcd: {fileID: 0}
   width: 5
+  speedLimit: 20
   neighbors: []
   prevNeighbors: []
 --- !u!4 &967656920
@@ -3827,7 +4116,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e3dd5ba28705fab4098ef9bbdab357ab, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  tcd: {fileID: 0}
   width: 5
+  speedLimit: 20
   neighbors: []
   prevNeighbors: []
 --- !u!4 &999149055
@@ -3978,7 +4269,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e3dd5ba28705fab4098ef9bbdab357ab, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  tcd: {fileID: 0}
   width: 5
+  speedLimit: 20
   neighbors:
   - {fileID: 342652048}
   prevNeighbors: []
@@ -4221,7 +4514,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e3dd5ba28705fab4098ef9bbdab357ab, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  tcd: {fileID: 0}
   width: 5
+  speedLimit: 20
   neighbors: []
   prevNeighbors: []
 --- !u!4 &1128424588
@@ -4351,7 +4646,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e3dd5ba28705fab4098ef9bbdab357ab, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  tcd: {fileID: 0}
   width: 5
+  speedLimit: 20
   neighbors: []
   prevNeighbors: []
 --- !u!4 &1187284472
@@ -4398,7 +4695,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e3dd5ba28705fab4098ef9bbdab357ab, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  tcd: {fileID: 0}
   width: 5
+  speedLimit: 20
   neighbors: []
   prevNeighbors: []
 --- !u!4 &1198365376
@@ -4445,7 +4744,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e3dd5ba28705fab4098ef9bbdab357ab, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  tcd: {fileID: 0}
   width: 5
+  speedLimit: 20
   neighbors: []
   prevNeighbors: []
 --- !u!4 &1204847198
@@ -4590,7 +4891,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e3dd5ba28705fab4098ef9bbdab357ab, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  tcd: {fileID: 0}
   width: 5
+  speedLimit: 20
   neighbors: []
   prevNeighbors: []
 --- !u!4 &1216861315
@@ -4637,7 +4940,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e3dd5ba28705fab4098ef9bbdab357ab, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  tcd: {fileID: 0}
   width: 5
+  speedLimit: 20
   neighbors: []
   prevNeighbors: []
 --- !u!4 &1217584334
@@ -5094,7 +5399,7 @@ MonoBehaviour:
   pathFinder: {fileID: 1504222255}
   spawnList:
   - {fileID: 2792827461388678281, guid: 856a500f30d76904082bd1b3a4b985f1, type: 3}
-  MaxAICars: 15
+  MaxAICars: 25
   activeAIs: []
 --- !u!4 &1370452783
 Transform:
@@ -5146,7 +5451,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e3dd5ba28705fab4098ef9bbdab357ab, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  tcd: {fileID: 0}
   width: 5
+  speedLimit: 20
   neighbors: []
   prevNeighbors: []
 --- !u!4 &1395974433
@@ -5310,7 +5617,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e3dd5ba28705fab4098ef9bbdab357ab, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  tcd: {fileID: 0}
   width: 5
+  speedLimit: 20
   neighbors: []
   prevNeighbors: []
 --- !u!4 &1493436448
@@ -5404,7 +5713,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e3dd5ba28705fab4098ef9bbdab357ab, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  tcd: {fileID: 0}
   width: 5
+  speedLimit: 20
   neighbors: []
   prevNeighbors: []
 --- !u!4 &1514183395
@@ -5451,7 +5762,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e3dd5ba28705fab4098ef9bbdab357ab, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  tcd: {fileID: 0}
   width: 5
+  speedLimit: 20
   neighbors: []
   prevNeighbors: []
 --- !u!4 &1547045270
@@ -5818,7 +6131,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e3dd5ba28705fab4098ef9bbdab357ab, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  tcd: {fileID: 0}
   width: 5
+  speedLimit: 20
   neighbors: []
   prevNeighbors: []
 --- !u!1 &1672664620
@@ -5948,7 +6263,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e3dd5ba28705fab4098ef9bbdab357ab, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  tcd: {fileID: 0}
   width: 5
+  speedLimit: 20
   neighbors: []
   prevNeighbors: []
 --- !u!4 &1677938412
@@ -5995,7 +6312,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e3dd5ba28705fab4098ef9bbdab357ab, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  tcd: {fileID: 0}
   width: 5
+  speedLimit: 20
   neighbors: []
   prevNeighbors: []
 --- !u!4 &1695630586
@@ -6042,7 +6361,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e3dd5ba28705fab4098ef9bbdab357ab, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  tcd: {fileID: 0}
   width: 5
+  speedLimit: 20
   neighbors: []
   prevNeighbors: []
 --- !u!4 &1703329909
@@ -6187,7 +6508,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e3dd5ba28705fab4098ef9bbdab357ab, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  tcd: {fileID: 0}
   width: 5
+  speedLimit: 20
   neighbors: []
   prevNeighbors: []
 --- !u!4 &1713454769
@@ -6331,7 +6654,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e3dd5ba28705fab4098ef9bbdab357ab, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  tcd: {fileID: 0}
   width: 5
+  speedLimit: 20
   neighbors:
   - {fileID: 12825065}
   - {fileID: 1128424587}
@@ -6478,7 +6803,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e3dd5ba28705fab4098ef9bbdab357ab, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  tcd: {fileID: 0}
   width: 5
+  speedLimit: 20
   neighbors: []
   prevNeighbors: []
 --- !u!4 &1743031521
@@ -6743,7 +7070,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e3dd5ba28705fab4098ef9bbdab357ab, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  tcd: {fileID: 0}
   width: 5
+  speedLimit: 20
   neighbors: []
   prevNeighbors: []
 --- !u!4 &1801119319
@@ -6888,7 +7217,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e3dd5ba28705fab4098ef9bbdab357ab, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  tcd: {fileID: 949778369}
   width: 5
+  speedLimit: 20
   neighbors: []
   prevNeighbors: []
 --- !u!4 &1810369256
@@ -6935,7 +7266,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e3dd5ba28705fab4098ef9bbdab357ab, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  tcd: {fileID: 0}
   width: 5
+  speedLimit: 20
   neighbors: []
   prevNeighbors: []
 --- !u!4 &1818407426
@@ -7242,7 +7575,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e3dd5ba28705fab4098ef9bbdab357ab, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  tcd: {fileID: 0}
   width: 5
+  speedLimit: 20
   neighbors: []
   prevNeighbors: []
 --- !u!4 &1899172503
@@ -7387,7 +7722,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e3dd5ba28705fab4098ef9bbdab357ab, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  tcd: {fileID: 0}
   width: 5
+  speedLimit: 20
   neighbors: []
   prevNeighbors: []
 --- !u!4 &1976829510
@@ -7434,7 +7771,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e3dd5ba28705fab4098ef9bbdab357ab, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  tcd: {fileID: 0}
   width: 5
+  speedLimit: 20
   neighbors: []
   prevNeighbors: []
 --- !u!4 &2011713983
@@ -7529,7 +7868,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e3dd5ba28705fab4098ef9bbdab357ab, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  tcd: {fileID: 0}
   width: 5
+  speedLimit: 20
   neighbors: []
   prevNeighbors: []
 --- !u!4 &2028189502
@@ -7576,7 +7917,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e3dd5ba28705fab4098ef9bbdab357ab, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  tcd: {fileID: 0}
   width: 5
+  speedLimit: 20
   neighbors: []
   prevNeighbors: []
 --- !u!4 &2047466923
@@ -7635,7 +7978,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e3dd5ba28705fab4098ef9bbdab357ab, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  tcd: {fileID: 0}
   width: 5
+  speedLimit: 20
   neighbors:
   - {fileID: 2111781329}
   prevNeighbors: []
@@ -7695,7 +8040,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e3dd5ba28705fab4098ef9bbdab357ab, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  tcd: {fileID: 0}
   width: 5
+  speedLimit: 20
   neighbors:
   - {fileID: 1695630585}
   - {fileID: 2028189501}
@@ -7744,7 +8091,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e3dd5ba28705fab4098ef9bbdab357ab, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  tcd: {fileID: 0}
   width: 5
+  speedLimit: 20
   neighbors: []
   prevNeighbors: []
 --- !u!4 &2111781330

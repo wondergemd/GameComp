@@ -43,13 +43,14 @@ public class TrafficGenerator : MonoBehaviour
 
             List<Waypoint> canidateWps = new List<Waypoint>(pathFinder.spawnWaypoints);
             canidateWps.RemoveAll(wp => wpsInUse.Contains(wp));
-            if (canidateWps.Count == 0) return;
 
             int numToSpawn = MaxAICars - activeAIs.Count;
 
             for (int i = 0; i < numToSpawn; i++)
             {
-                int randIdx = Random.Range(0, canidateWps.Count - 1);
+                if (canidateWps.Count == 0) return;
+
+                int randIdx = Random.Range(0, canidateWps.Count);
 
                 Waypoint spawnWp = canidateWps[randIdx];
                 Vector3 spawnPos = spawnWp.GetPosition();

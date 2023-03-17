@@ -233,10 +233,31 @@ public class AI : MonoBehaviour
         return targetPos;
     }
     
-    float CalculateTargetSpeed(SegmentData currSeg, float vehXnormOnSeg)
+    float CalculateTargetSpeed(List<SegmentData> plan, SegmentData currSeg, float vehXnormOnSeg)
     {
         // Target speed calculated to traverse path
         float targetSpeed = Mathf.Lerp(currSeg.startSpeed, currSeg.endSpeed, vehXnormOnSeg);
+
+        // Take into account traffic lights
+        /*
+        TrafficLight tf = null;
+        foreach(SegmentData segInPlan in plan)
+        {
+            TrafficControlDevice currTCD = segInPlan.endWp.tcd;
+
+            if (currTCD && currTCD is TrafficLight)
+            {
+                tf = segInPlan.startWp.tcd as TrafficLight;
+                break;
+            }
+        }
+        */
+        TrafficLight tf = currSeg.endWp.tcd as TrafficLight;
+
+        if (tf && tf.state == TrafficLight.State.STOP)
+        {
+            targetSpeed = Mathf.Min(targetSpeed, Mathf.Lerp(currSeg.startSpeed, 0f, vehXnormOnSeg));
+        }
 
         // Take into account AI vehicles and player vehicle by keeping distance between them
         this.tempdistBetween = float.MaxValue;
@@ -337,7 +358,7 @@ public class AI : MonoBehaviour
         Vector3 targetPos = CalculateTarget(segment, currSegXnorm);
         Vector3 vehToTarget = targetPos - vehPos;
 
-        float targetSpeed = CalculateTargetSpeed(segment, currSegXnorm);
+        float targetSpeed = CalculateTargetSpeed(plan, segment, currSegXnorm);
         float speedDiff = targetSpeed - vehSpeed;
         //Debug.Log(string.Format("speedDiff: {0:0.00} m/s", speedDiff));
         //Debug.Log(targetSpeed);

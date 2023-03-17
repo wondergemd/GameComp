@@ -4,6 +4,8 @@ using UnityEngine;
 
 public class Waypoint : MonoBehaviour
 {
+    public TrafficControlDevice tcd;
+
     public float width;
     public float speedLimit;
     
