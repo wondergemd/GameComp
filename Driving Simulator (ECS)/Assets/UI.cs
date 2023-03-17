@@ -106,7 +106,7 @@ public class UI : MonoBehaviour
             {
                 StartCoroutine(FlashLeftCoroutine());
             }
-            player.blindSpotRight = false;
+            player.blindSpotLeft = false;
         }
 
         // LEFT BLIND SPOT INDICATOR
@@ -117,6 +117,18 @@ public class UI : MonoBehaviour
                 StartCoroutine(FlashRightCoroutine());
             }
             player.blindSpotRight = false;
+        }
+
+    }
+
+    private void ForwardCollisionIndicatorsMain()
+    {
+        if (player.collisionDetected)
+        {
+            if (!forwardCollisionFlashing)
+            {
+                StartCoroutine(FlashForwardCollisionCoroutine());
+            }
         }
 
     }
@@ -174,5 +186,7 @@ public class UI : MonoBehaviour
         RotateSpeedometer();
 
         BlindSpotIndicatorsMain();
+
+        ForwardCollisionIndicatorsMain();
     }
 }

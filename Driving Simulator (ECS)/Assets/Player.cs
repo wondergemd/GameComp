@@ -37,6 +37,7 @@ public class Player : MonoBehaviour
     public float blindSpotLength = 5f;
     public bool blindSpotLeft = false;
     public bool blindSpotRight = false;
+    public float sameDirectionThreshold = 0.25f;
 
 
     [Space(10)]
@@ -76,6 +77,8 @@ public class Player : MonoBehaviour
         }
     }
 
+
+    // Utility function for multiple Raycast sensors. Each hit in list returned must be checked to ensure it is not null.
     private List<RaycastHit> SensorArray(int numSensors, float maxAngle, float sensorLength, Vector3 sensorOffset)
     {
         List<RaycastHit> hits = new List<RaycastHit>();
@@ -106,30 +109,6 @@ public class Player : MonoBehaviour
 
         return hits;
     }
-
-
-    // Function not needed, as using AI pathing system for collision detection instead. Keeping as the for loop may be useful for adding other raycast sensors in the future.
-/*
-    private void ForwardCollisionDetectionSensors()
-    {
-        // Sensor starts at middle of car, additions set sensors at front of car and account for changes in direction
-        Vector3 sensorPos = playerVehicle.transform.position;
-        sensorPos += (playerVehicle.transform.forward * frontSensorPos.x);
-        sensorPos += (playerVehicle.transform.up * frontSensorPos.y);
-
-        // Sensor length is determined by the square of the vehicle's speed
-        //frontSensorLength = Mathf.Pow(Vehicle.GetSpeed(), 2f) * sensorMult;
-
-        float frontSensorAngleSub = (frontSensorMaxAngle * 2) / (numSensors - 1);
-        float tempSensorAngle = frontSensorMaxAngle;
-        for (int i = 0; i < numSensors; i++)
-        {
-            Sensor(sensorPos, tempSensorAngle, frontSensorLength);
-            tempSensorAngle -= frontSensorAngleSub;
-        }
-
-    }
-*/
 
 
     // Forward Collision Detection based on non-linear AI paths and linear physics equation
@@ -184,12 +163,16 @@ public class Player : MonoBehaviour
         // full brakes is less than minForwardCollisionDist, then apply emergency braking
         // records time to determine how long to hold emergency braking
         // Should probably update emergency braking to gradual system and make coroutine instead
-        if (DistBetweenWithBraking <= minForwardCollisionDist)
+        if (DistBetweenWithBraking <= 0)
         {
             collisionDetected = true;
             playerVehicle.Throttle = 0;
             playerVehicle.Brake = 1;
-            Debug.Log("Collision Detected");
+            //Debug.Log("Collision Detected");
+        }
+        else if (DistBetweenWithBraking <= minForwardCollisionDist)
+        {
+            collisionDetected = true;
         }
         else
         {
@@ -201,29 +184,10 @@ public class Player : MonoBehaviour
     IEnumerator ForwardCollisionBraking()
     {
 
-
-
         yield return new WaitUntil(() => playerVehicle.GetSpeed() <= 0.1);
 
     }
 
-
-    // Applies full emergency braking for period of time equal to holdTime
-    // Need to update to gradual braking system and make coroutine
-    private void EmergencyBraking()
-    {
-        // Holds emergency braking for a set amount of time to override player input and allow vehicle to actually brake
-        if (collisionDetected && Time.time - collisionDetectedTime >= holdTime)
-        {
-            collisionDetected = false;
-        }
-
-        if (collisionDetected)
-        {
-            playerVehicle.Throttle = 0;
-            playerVehicle.Brake = 1;
-        }
-    }
 
     // Estimates distance needed to match given speed based on the vehicle's braking torque and mass, and current speed.
     private float DistanceToMatchSpeed(float finalSpeed)
@@ -236,6 +200,7 @@ public class Player : MonoBehaviour
         float maxDeceleration = playerVehicle.maxBrakeTorque / (playerVehicle.GetMass() / 10);
         return (playerVehicle.GetSpeed() * t) + ((0.5f) * -maxDeceleration * (Mathf.Pow(t, 2f)));
     }
+
 
     // Estimates time needed to match given speed based on the vehicle's braking torque and mass, and current speed.
     private float TimeToMatchSpeed(float finalSpeed)
@@ -266,7 +231,6 @@ public class Player : MonoBehaviour
     }
 
 
-
     // Blind spot indicators for passing vehicles in same direction
     private void BlindSpotIndicator()
     {
@@ -279,46 +243,34 @@ public class Player : MonoBehaviour
         {
             if (hit.collider != null)
             {
-                if (hit.collider.tag == "vehicle")
+                // ensure hit object is a vehicle
+                if (hit.transform.gameObject.tag == "vehicle")
                 {
+                    Vehicle AIvehicle = hit.transform.gameObject.GetComponent<Vehicle>();
 
+                    // take dot product of velocities to check if vehicle is traveling in same direction as player (IE: passing player, not traveling on opposite road direction)
+                    float dotProduct = Vector3.Dot(AIvehicle.GetVelocity().normalized, playerVehicle.GetVelocity().normalized);
+                    Debug.Log(dotProduct);
+                    if (dotProduct > sameDirectionThreshold)
+                    {
+                        // take cross product to determine if AI vehicle is on left or right side
+                        Vector3 direction = (AIvehicle.transform.position - playerVehicle.transform.position).normalized;
+                        Vector3 up = playerVehicle.transform.up;
+                        Vector3 crossProduct = Vector3.Cross(direction, up);
+
+                        if (crossProduct.y > 0)
+                        {
+                            blindSpotLeft = true;
+                        }
+                        else if (crossProduct.y < 0)
+                        {
+                            blindSpotRight = true;
+                        }
+                    }
                 }
             }
         }
 
-        /*
-        RaycastHit hit;
-        // Sensor starts at middle of car, additions set sensors at front of car and account for changes in direction
-        Vector3 blindSpotSensorPos = playerVehicle.transform.position;
-        blindSpotSensorPos += (playerVehicle.transform.forward * backSensorPos.x);
-        blindSpotSensorPos += (playerVehicle.transform.up * backSensorPos.y);
-        blindSpotSensorPos += (playerVehicle.transform.right * backSensorPos.z);
-
-
-        
-        // Right Sensor
-        if (Physics.Raycast(blindSpotSensorPos, (Quaternion.AngleAxis(-blindSpotAngle, playerVehicle.transform.up) * -playerVehicle.transform.forward), out hit, blindSpotLength))
-        {
-            Debug.DrawLine(blindSpotSensorPos, hit.point, Color.green);
-            blindSpotRight = true;
-        }
-        else
-        {
-            Debug.DrawRay(blindSpotSensorPos, (Quaternion.AngleAxis(-blindSpotAngle, playerVehicle.transform.up) * -playerVehicle.transform.forward) * blindSpotLength, Color.red);
-        }
-
-        // Left Sensor
-        blindSpotSensorPos -= (playerVehicle.transform.right * backSensorPos.z) * 2;
-        if (Physics.Raycast(blindSpotSensorPos, (Quaternion.AngleAxis(blindSpotAngle, playerVehicle.transform.up) * -playerVehicle.transform.forward), out hit, blindSpotLength))
-        {
-            Debug.DrawLine(blindSpotSensorPos, hit.point, Color.green);
-            blindSpotLeft = true;
-        }
-        else
-        {
-            Debug.DrawRay(blindSpotSensorPos, (Quaternion.AngleAxis(blindSpotAngle, playerVehicle.transform.up) * -playerVehicle.transform.forward) * blindSpotLength, Color.red);
-        }
-        */
     }
 
 
@@ -438,10 +390,7 @@ public class Player : MonoBehaviour
 
         BlindSpotIndicator();
 
-        //EmergencyBraking();
-
         DebugTextUpdater();
 
-        //Debug.Log(DistanceToMatchSpeed(30f));
     }
 }
