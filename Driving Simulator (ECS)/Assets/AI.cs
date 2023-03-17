@@ -128,6 +128,7 @@ public class AI : MonoBehaviour
 
                 startRadius = segment.catmullCurve.ClosestPointOnCurveMoreInfo(wpStartPos, 10).radius; //MathLib.GetRadius(wpLastPos, wpStartPos, wpEndPos);
                 startMaxSpeed = Mathf.Min(100, Mathf.Sqrt(maxComfortAcc * Mathf.Abs(startRadius)));
+                startMaxSpeed = Mathf.Min(startMaxSpeed, startWp.speedLimit);
 
                 SegmentData prevSegment = plan[i - 1];
                 prevSegment.endRadius = startRadius;

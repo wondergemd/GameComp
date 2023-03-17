@@ -5,6 +5,7 @@ using UnityEngine;
 public class Waypoint : MonoBehaviour
 {
     public float width;
+    public float speedLimit;
     
     public List<Waypoint> neighbors;
     public List<Waypoint> prevNeighbors;
