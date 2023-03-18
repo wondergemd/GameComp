@@ -114,9 +114,9 @@ public class Player : MonoBehaviour
     // Forward Collision Detection based on non-linear AI paths and linear physics equation
     private void ForwardCollisionDetection()
     {
-        float minDist = float.MaxValue;
+        float distToVehicle = float.MaxValue;
         float aiSpeed = 0f;
-        float aiAcc = 0f;
+        Vector3 aiAccVec = Vector3.zero;
 
 
         // 1. Find closest AI vehicle to player vehicle which share non-linear AI paths
@@ -137,27 +137,31 @@ public class Player : MonoBehaviour
             if (currSeg.Item1 != null && !(currSeg.Item2 == aiSeg.endWp && currSeg.Item3 > ai.currSegXnorm))
             {
                 // get path distance (non-linear) between player vehicle and AI vehicle
-                float distBetweenAI = pathFinder.DistanceBetweenTwoPointsOnPath(playerVehicle.GetPosition(), aiVeh.GetPosition(), currSeg.Item2, aiSeg.endWp);
+                float distBetweenAI = pathFinder.DistanceToVehicleOnPathTrajectory(playerVehicle, aiVeh, currSeg.Item2, aiSeg.endWp);
 
                 // if AI vehicle is closest to player vehicle in loop so far
-                if (distBetweenAI < minDist)
+                if (distBetweenAI < distToVehicle)
                 {
-                    minDist = distBetweenAI;
+                    distToVehicle = distBetweenAI;
                     aiSpeed = ai.vehicle.GetSpeed();
-                    aiAcc = ai.vehicle.GetAcceleration();
+                    aiAccVec = ai.vehicle.GetAccelerationVec();
                 }
             }
         }
 
         // 2. Determine if braking needs to be applied
+        float aiAcc = Vector3.Dot(aiAccVec, playerVehicle.GetVelocity().normalized);
 
         float t = TimeToMatchSpeed(aiSpeed);
 
         // distance AI travels in time it takes player vehicle to stop | d = v0*t + 0.5*a*t^2
-        float aiDistTraveledInTimeToBrake = ((aiSpeed - playerVehicle.GetSpeed()) * t) + (0.5f * aiAcc * (Mathf.Pow(t, 2f)));
+        float aiDistTraveledInTimeToBrake = (aiSpeed * t) + (0.5f * aiAcc * (Mathf.Pow(t, 2f)));
+
+        // minimum distance to leave between vehicles
+        float leewayDist = 7.5f;
 
         // distance between player vehicle and AI vehicle if player vehicle applies full brakes now. 
-        float DistBetweenWithBraking = (aiDistTraveledInTimeToBrake + minDist) - DistanceToMatchSpeed(aiSpeed);
+        float DistBetweenWithBraking = (aiDistTraveledInTimeToBrake + distToVehicle) - DistanceToMatchSpeed(aiSpeed) - leewayDist;
 
         // if estimated distance between player vehicle and AI vehicle after player vehicle theoretically applies
         // full brakes is less than minForwardCollisionDist, then apply emergency braking
