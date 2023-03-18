@@ -7,6 +7,8 @@ using Utils;
 
 public class PathFinder : MonoBehaviour
 {
+    public bool debugDraw = false;
+
     public DebugDrawer debugDrawer;
     public Waypoint[] allWaypoints;
 
@@ -89,6 +91,8 @@ public class PathFinder : MonoBehaviour
 
     private void LateUpdate()
     {
+        if (!debugDraw) return;
+
         if (debugDrawer != null)
         {
             foreach (Waypoint wp in allWaypoints)

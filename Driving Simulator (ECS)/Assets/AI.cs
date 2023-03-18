@@ -385,26 +385,24 @@ public class AI : MonoBehaviour
 
     void LateUpdate()
     {
+        if (!debugPaths) return;
 
-        if (debugPaths)
+        for (int s = 0; s < plan.Count; s++)
         {
-            for (int s = 0; s < plan.Count; s++)
+            MathLib.CatmullRomCurve curve = plan[s].catmullCurve;
+
+            const int detail = 32;
+            Vector3 prev = curve.p1;
+            for (int i = 1; i < detail; i++)
             {
-                MathLib.CatmullRomCurve curve = plan[s].catmullCurve;
-
-                const int detail = 32;
-                Vector3 prev = curve.p1;
-                for (int i = 1; i < detail; i++)
-                {
-                    float t = i / (detail - 1f);
-                    Vector3 pt = curve.GetPoint(t);
-                    Debug.DrawLine(prev, pt, Color.HSVToRGB(s / (float)plan.Count, 1.0f, 1.0f));
-                    prev = pt;
-                }
-
-                Debug.DrawLine(curve.p1, curve.p1 + Vector3.up, Color.red);
-                Debug.DrawLine(curve.p2, curve.p2 + Vector3.up, Color.green);
+                float t = i / (detail - 1f);
+                Vector3 pt = curve.GetPoint(t);
+                Debug.DrawLine(prev, pt, Color.HSVToRGB(s / (float)plan.Count, 1.0f, 1.0f));
+                prev = pt;
             }
+
+            Debug.DrawLine(curve.p1, curve.p1 + Vector3.up, Color.red);
+            Debug.DrawLine(curve.p2, curve.p2 + Vector3.up, Color.green);
         }
 
         /*
