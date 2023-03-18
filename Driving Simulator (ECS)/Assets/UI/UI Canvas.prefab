@@ -729,11 +729,11 @@ MonoBehaviour:
   speedometerArrow: {fileID: 7123284312577971801}
   blindSpotIndicatorLeft: {fileID: 7123284311452969021}
   blindSpotIndicatorRight: {fileID: 7123284311131868937}
-  forwardCollisionDetection: {fileID: 0}
-  park: {fileID: 0}
-  drive: {fileID: 0}
-  reverse: {fileID: 0}
-  neutral: {fileID: 0}
+  forwardCollisionDetection: {fileID: 7507023195936074632}
+  park: {fileID: 1660091764792400522}
+  drive: {fileID: 6964886640926079550}
+  reverse: {fileID: 9006303991890788982}
+  neutral: {fileID: 4588306265528124392}
   SpeedText: {fileID: 7123284311957545897}
   flashInterval: 0.2
   flashDuration: 2
