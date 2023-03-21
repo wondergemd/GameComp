@@ -1,5 +1,5 @@
 # Unity Vehicle Simulator
-### Developers
+### Encroached Cockroach Studio Developers
 * Angelo Matteo
 * Dennis Wondergem
 * Duy Pham
