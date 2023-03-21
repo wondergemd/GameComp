@@ -7,7 +7,7 @@
 
 
 ## What is it?
-# Unity Vehicle Simulator is a driving simulator that detects body collision that can be used to help improve non-playedable objects like A.I.
+Unity Vehicle Simulator is a driving simulator that detects body collision that can be used to help improve non-playedable objects like A.I.
 
 ### What makes our approach different?
 
