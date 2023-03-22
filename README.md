@@ -39,6 +39,7 @@ The next term our goal is to feature a controller feature with a steering wheel,
 
 ## Binaries/Downloads
 Current beta release can be found and downloaded [here.](https://github.com/wondergemd/GameComp/releases/)
+Simply extract .zip archive and run the 'Driving Simulator (ECS).exe' file.
 
 
 ## Contact
