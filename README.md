@@ -36,6 +36,9 @@ The next term our goal is to feature a controller feature with a steering wheel,
 
 
 ## Screenshots
+![Preview 1](Screenshots/1.PNG)
+![Preview 2](Screenshots/2.PNG)
+![Preview 3](Screenshots/3.PNG)
 
 ## Binaries/Downloads
 Current beta release can be found and downloaded [here.](https://github.com/wondergemd/GameComp/releases/)
