@@ -12,7 +12,8 @@ Unity Vehicle Simulator is a driving simulator that replicates realistic driving
 ### What makes our approach different?
 It's not mario kart, nor a Arm Shopping Cart Simulator.
 ## Controls
-
+By the end of Winter Term 2023, we only have a WASD driving feature that doesn't really replicate real life driving.
+The next term our goal is to feature a controller feature with a steering wheel, pedals and a gear shifter. Our goal is to simulate real life driving to help improve the ADAS feature for real cars.
 ## Screenshots
 
 ## Contact
