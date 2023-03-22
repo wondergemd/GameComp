@@ -18,7 +18,8 @@ The next term our goal is to feature a controller feature with a steering wheel,
 ## Problem
 The problems associated to our project is related to ADAS real life features to help assist accident prevention measures.
 
-
+## Value Proposition
+Why is our product better? It simulates real life, which helps reduce cost with real life testing for improvement on ADAS features.
 
 ## Screenshots
 
