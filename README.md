@@ -23,6 +23,9 @@ Why is our product better? It simulates real life, which helps reduce cost with 
 
 ## Screenshots
 
+## Binaries/Downloads
+Currently we have not released the beta version as we are still improving ADAS features and playability for our game. We fully plan to add a controller feature and release the alpha of the game once it's been implemented.
+
 ## Contact
 
 
