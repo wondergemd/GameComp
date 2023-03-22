@@ -41,6 +41,7 @@ The next term our goal is to feature a controller feature with a steering wheel,
 Currently we have not released the beta version as we are still improving ADAS features and playability for our game. We fully plan to add a controller feature and release the alpha of the game once it's been implemented. When we release our simulator, we'll add a link to download the exe file here. 
 
 ## Contact
+Please feel free to post in the discusion board [here](https://github.com/wondergemd/GameComp/discussions).
 
 
 
