@@ -16,8 +16,7 @@ By the end of Winter Term 2023, we only have a WASD driving feature that doesn't
 The next term our goal is to feature a controller feature with a steering wheel, pedals and a gear shifter. Our goal is to simulate real life driving to help improve the ADAS feature for real cars.
 
 ## Problem
-The problems associated to our project is related to ADAS real life features to help assist accident prevention measures. 
-According to https://injuryfacts.nsc.org/motor-vehicle/occupant-protection/advanced-driver-assistance-systems/#:~:text=Advanced%20Driver%20Assistance%20Systems%20(ADAS,and%20sold%20with%20these%20systems.
+The problems associated to our project is related to ADAS real life features to help assist accident prevention measures.
 
 
 
