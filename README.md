@@ -31,9 +31,6 @@ Currently our controls consist of the following layout:
 | 4  | Select Gear - Reverse  |
 | F1  | Toggle Camera View  |
 
-By the end of Winter Term 2023, we only have a WASD driving feature that doesn't really replicate real life driving.
-The next term our goal is to feature a controller feature with a steering wheel, pedals and a gear shifter. Our goal is to simulate real life driving to help improve the ADAS feature for real cars.
-
 
 ## Screenshots
 ![Preview 1](Screenshots/1.PNG)
