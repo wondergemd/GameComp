@@ -254,7 +254,7 @@ public class Player : MonoBehaviour
 
                     // take dot product of velocities to check if vehicle is traveling in same direction as player (IE: passing player, not traveling on opposite road direction)
                     float dotProduct = Vector3.Dot(AIvehicle.GetVelocity().normalized, playerVehicle.GetVelocity().normalized);
-                    Debug.Log(dotProduct);
+                    //Debug.Log(dotProduct);
                     if (dotProduct > sameDirectionThreshold)
                     {
                         // take cross product to determine if AI vehicle is on left or right side
